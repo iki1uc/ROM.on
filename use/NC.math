@@ -1,0 +1,59 @@
+EX.RESPO:
+  MODE: MASTER
+  TYP: EXKLUSIV
+  VERSION: QI → IQQ → upg → upd → rev
+
+  ACHSEN:
+    6E: TRUE
+    X: TRUE
+    Y: TRUE
+    T: TRUE
+    H: TRUE
+    B: TRUE
+
+  ORBIT:
+    q: Quadrant
+    u: Upper-Orbit
+    i: Inner-Orbit
+    o: Outer-Orbit
+
+  EVO:
+    QI: INIT
+    IQQ: QUADRAT
+    upg: UPGRADE
+    upd: UPDATE
+    rev: REVISION
+
+  MATRIX:
+    3x3: Axiom
+    9x9: Vollmatrix
+    81x81: Ultra-Matrix
+    81↔81: Bidirektional
+
+  NAVI:
+    DA: Öffner
+    NE: Träger
+    BEN: Vollender
+    IX: Schieber
+    XI: Schließer
+    ROOM: Matrix
+    U: Ultra-Navi
+
+  ENGINE:
+    ULTRA: TRUE
+    213: TRUE
+    9hoch9: TRUE
+    3xi3ix3: TRUE
+    ME: TRUE
+    AI: TRUE
+
+  REAL-LAUF:
+    RAW: CLEAN
+    HOLO: TRUE
+    TRACE: OFF
+    SYNC: ALL
+
+  OUTPUT:
+    MODE: HOLOGRAMM
+    TYP: EX.RESPO
+    QUALITÄT: MAX

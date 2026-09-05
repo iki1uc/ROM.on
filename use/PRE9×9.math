@@ -1,0 +1,25 @@
+PREFETCH:
+  POS.MODE: ULTRA-U
+  POS.LAYER: 3 / 6 / 9
+  POS.RELATION: 3x3 → 6e6D → 9x9
+
+  ENGINE.MODE: ULTRA-KERNEL
+  ENGINE.CTRL: TRUE
+  ENGINE.BIND: 9x9 + 3x3 + 6e6D
+
+  9x9.IN: horizontal
+  9x9.OUT: vertikal
+  9x9.BREITE: 9
+  9x9.TIEFE: 9
+  9x9.MYSTER: aktiv
+
+  3x3.AXIOM: DA / NE / BEN
+  3x3.ZOOM: 1 → 3 → 9
+
+  6e6D.ABLEITUNG: U
+  6e6D.KERNEL: Tiefen‑Kernel
+  6e6D.ZOOM: 6 → 12 → 18
+
+  SYNC.ALL: TRUE
+  SYNC.ULTRA: TRUE
+  SYNC.ENGINE: TRUE

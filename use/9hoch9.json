@@ -1,0 +1,95 @@
+class NINEHOCH9 {
+
+    constructor(){
+        this.matrix = [];
+        this.pipe3  = [];
+        this.pipe6  = [];
+        this.pipe9  = [];
+        this.pipe12 = [];
+        this.octa   = [];
+    }
+
+    // QI – reine Index-Schaltung
+    qi(r, c){
+        return r * 9 + c;
+    }
+
+    // IQQ – 3-Zustands-Schaltung
+    iqq(r, c){
+        return this.qi(r, c) % 3;
+    }
+
+    // OCTA – 8-Wege-Intelligenz
+    octaRoute(qi){
+        return qi % 8;
+    }
+
+    // PIPE 3 – tri-routing
+    pipeTri(qi){
+        return qi % 3;
+    }
+
+    // PIPE 6 – hex-routing
+    pipeHex(qi){
+        return qi % 6;
+    }
+
+    // PIPE 9 – non-routing
+    pipeNon(qi){
+        return qi % 9;
+    }
+
+    // PIPE 12 – dodeca-routing
+    pipeDode(qi){
+        return qi % 12;
+    }
+
+    // MASTER-MATRIX erzeugen
+    build(){
+        this.matrix = [];
+        this.pipe3  = [];
+        this.pipe6  = [];
+        this.pipe9  = [];
+        this.pipe12 = [];
+        this.octa   = [];
+
+        for(let r=0; r<9; r++){
+            let row = [];
+            let p3  = [];
+            let p6  = [];
+            let p9  = [];
+            let p12 = [];
+            let oc  = [];
+
+            for(let c=0; c<9; c++){
+                let qi  = this.qi(r, c);
+                let iqq = this.iqq(r, c);
+
+                row.push(iqq);
+                p3.push(this.pipeTri(qi));
+                p6.push(this.pipeHex(qi));
+                p9.push(this.pipeNon(qi));
+                p12.push(this.pipeDode(qi));
+                oc.push(this.octaRoute(qi));
+            }
+
+            this.matrix.push(row);
+            this.pipe3.push(p3);
+            this.pipe6.push(p6);
+            this.pipe9.push(p9);
+            this.pipe12.push(p12);
+            this.octa.push(oc);
+        }
+
+        return {
+            matrix: this.matrix,
+            pipe3: this.pipe3,
+            pipe6: this.pipe6,
+            pipe9: this.pipe9,
+            pipe12: this.pipe12,
+            octa: this.octa
+        };
+    }
+}
+
+window.NINEHOCH9 = new NINEHOCH9();

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>RESPO · TRIGGER ENGINE · 3-Achsen · Ebenen-Synchron</title>
+
+<style>
+:root {
+    --bg: #0a0a0f;
+    --fg: #0ff;
+    --accent: #6cf;
+    --level1: #f44;
+    --level2: #4f4;
+    --level3: #44f;
+    --axis-x: #ff6b6b;
+    --axis-y: #6bff6b;
+    --axis-z: #6b6bff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Consolas', monospace;
+    height: 100vh;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 8px;
+    padding: 8px;
+}
+
+/* ===== TOP: KONTROLLZENTRUM ===== */
+#control-center {
+    background: #111;
+    border: 2px solid var(--fg);
+    border-radius: 12px;
+    padding: 12px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    align-items: center;
+}
+
+.btn-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: #1a1a2a;
+}
+
+.btn-group label {
+    font-size: 11px;
+    color: #888;
+    margin-right: 4px;
+}
+
+.btn-trigger {
+    background: #222;
+    color: var(--fg);
+    border: 1px solid #444;
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    transition: all 0.15s ease;
+    position: relative;
+}
+.btn-trigger:hover { background: #333; }
+.btn-trigger:active { transform: scale(0.95); }
+
+.btn-trigger.level1 { border-color: var(--level1); color: var(--level1); }
+.btn-trigger.level2 { border-color: var(--level2); color: var(--level2); }
+.btn-trigger.level3 { border-color: var(--level3); color: var(--level3); }
+
+.btn-trigger.active {
+    background: var(--fg);
+    color: #000;
+    box-shadow: 0 0 20px var(--fg);
+}
+
+.btn-trigger.axis-x { border-color: var(--axis-x); color: var(--axis-x); }
+.btn-trigger.axis-y { border-color: var(--axis-y); color: var(--axis-y); }
+.btn-trigger.axis-z { border-color: var(--axis-z); color: var(--axis-z); }
+
+.btn-trigger.axis-x.active { background: var(--axis-x); color: #000; }
+.btn-trigger.axis-y.active { background: var(--axis-y); color: #000; }
+.btn-trigger.axis-z.active { background: var(--axis-z); color: #000; }
+
+#status-bar {
+    margin-left: auto;
+    font-size: 12px;
+    color: #888;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #333;
+    transition: all 0.3s;
+}
+.status-dot.on { background: #0f0; box-shadow: 0 0 10px #0f0; }
+.status-dot.off { background: #f00; }
+
+/* ===== MIDDLE: EBENEN + GRID ===== */
+#layers {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    height: 100%;
+    min-height: 0;
+}
+
+.layer {
+    background: #0e0e1a;
+    border: 1px solid #222;
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.4s ease;
+}
+
+.layer-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-bottom: 1px solid #222;
+    margin-bottom: 6px;
+}
+
+.layer-1 .layer-header { color: var(--level1); border-color: var(--level1); }
+.layer-2 .layer-header { color: var(--level2); border-color: var(--level2); }
+.layer-3 .layer-header { color: var(--level3); border-color: var(--level3); }
+
+.layer-grid {
+    display: grid;
+    gap: 3px;
+    flex: 1;
+    align-content: start;
+}
+
+.layer-grid .cell {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background: #151525;
+    border: 1px solid #2a2a3a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: #666;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+}
+
+.layer-grid .cell.filled {
+    background: #1a2a3a;
+    border-color: #3a5a7a;
+    color: #aac;
+}
+
+.layer-grid .cell.active {
+    border-color: var(--fg);
+    box-shadow: 0 0 12px var(--fg);
+    transform: scale(1.05);
+    z-index: 2;
+}
+
+.layer-grid .cell.triggered {
+    animation: pulse-trigger 0.6s ease;
+}
+
+@keyframes pulse-trigger {
+    0% { transform: scale(1); box-shadow: 0 0 0 var(--fg); }
+    50% { transform: scale(1.3); box-shadow: 0 0 40px var(--fg); }
+    100% { transform: scale(1); box-shadow: 0 0 0 var(--fg); }
+}
+
+/* ===== BOTTOM: LOG / FEEDBACK ===== */
+#log {
+    background: #0a0a12;
+    border: 1px solid #1a1a2a;
+    border-radius: 8px;
+    padding: 8px 14px;
+    height: 70px;
+    overflow-y: auto;
+    font-size: 12px;
+    color: #6a6a8a;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+#log .entry {
+    display: flex;
+    gap: 12px;
+    border-bottom: 1px solid #111;
+    padding: 2px 0;
+}
+#log .time { color: #444; width: 70px; flex-shrink: 0; }
+#log .msg { color: #8af; }
+#log .msg.level1 { color: var(--level1); }
+#log .msg.level2 { color: var(--level2); }
+#log .msg.level3 { color: var(--level3); }
+#log .msg.axis-x { color: var(--axis-x); }
+#log .msg.axis-y { color: var(--axis-y); }
+#log .msg.axis-z { color: var(--axis-z); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+    #layers { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr 1fr; }
+    #control-center { flex-direction: column; align-items: stretch; }
+    #status-bar { margin-left: 0; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== KONTROLLZENTRUM ===== -->
+<div id="control-center">
+    <span style="font-weight:bold;color:var(--accent);">⚡ TRIGGER ENGINE</span>
+
+    <!-- EBENEN-TRIGGER -->
+    <div class="btn-group">
+        <label>EBENEN</label>
+        <button class="btn-trigger level1" data-level="1">❶ Etage 1</button>
+        <button class="btn-trigger level2" data-level="2">❷ Etage 2</button>
+        <button class="btn-trigger level3" data-level="3">❸ Etage 3</button>
+    </div>
+
+    <!-- ACHSEN-TRIGGER -->
+    <div class="btn-group">
+        <label>ACHSEN</label>
+        <button class="btn-trigger axis-x" data-axis="x">X</button>
+        <button class="btn-trigger axis-y" data-axis="y">Y</button>
+        <button class="btn-trigger axis-z" data-axis="z">Z</button>
+    </div>
+
+    <!-- GLOBALE TRIGGER -->
+    <div class="btn-group">
+        <label>GLOBAL</label>
+        <button class="btn-trigger" id="btn-sync">⟳ SYNC</button>
+        <button class="btn-trigger" id="btn-reset">⟲ RESET</button>
+        <button class="btn-trigger" id="btn-auto">▶ AUTO</button>
+    </div>
+
+    <!-- STATUS -->
+    <div id="status-bar">
+        <span>● <span id="status-text">idle</span></span>
+        <span class="status-dot off" id="status-dot"></span>
+        <span id="counter">0/0</span>
+    </div>
+</div>
+
+<!-- ===== EBENEN ===== -->
+<div id="layers">
+    <!-- Etage 1: 3×3 = 9 Zellen -->
+    <div class="layer layer-1" data-layer="1">
+        <div class="layer-header">
+            <span>❶ ETAGE 1 · 3×3</span>
+            <span id="layer-count-1">0/9</span>
+        </div>
+        <div class="layer-grid" id="grid-1" style="grid-template-columns:repeat(3,1fr);"></div>
+    </div>
+
+    <!-- Etage 2: 9×9 = 81 Zellen -->
+    <div class="layer layer-2" data-layer="2">
+        <div class="layer-header">
+            <span>❷ ETAGE 2 · 9×9</span>
+            <span id="layer-count-2">0/81</span>
+        </div>
+        <div class="layer-grid" id="grid-2" style="grid-template-columns:repeat(9,1fr);"></div>
+    </div>
+
+    <!-- Etage 3: 27×27 = 729 Zellen -->
+    <div class="layer layer-3" data-layer="3">
+        <div class="layer-header">
+            <span>❸ ETAGE 3 · 27×27</span>
+            <span id="layer-count-3">0/729</span>
+        </div>
+        <div class="layer-grid" id="grid-3" style="grid-template-columns:repeat(27,1fr);"></div>
+    </div>
+</div>
+
+<!-- ===== LOG ===== -->
+<div id="log">
+    <div class="entry"><span class="time">[INIT]</span><span class="msg">System bereit · 3 Ebenen · 3 Achsen</span></div>
+</div>
+
+<script type="module">
+// ============================================================
+// 1. KONFIGURATION
+// ============================================================
+const LEVELS = {
+    1: { size: 3, total: 9,  gridId: 'grid-1', countId: 'layer-count-1' },
+    2: { size: 9, total: 81, gridId: 'grid-2', countId: 'layer-count-2' },
+    3: { size: 27, total: 729, gridId: 'grid-3', countId: 'layer-count-3' }
+};
+
+const AXES = ['x', 'y', 'z'];
+
+// ============================================================
+// 2. STATE
+// ============================================================
+const state = {
+    activeCells: {},      // { '1': Set, '2': Set, '3': Set }
+    triggeredCells: {},   // { '1': Set, '2': Set, '3': Set }
+    activeAxis: null,     // 'x' | 'y' | 'z' | null
+    activeLevel: null,    // 1 | 2 | 3 | null
+    autoMode: false,
+    timer: null,
+    log: []
+};
+
+// Init Sets
+[1, 2, 3].forEach(l => {
+    state.activeCells[l] = new Set();
+    state.triggeredCells[l] = new Set();
+});
+
+// ============================================================
+// 3. GRID BAUEN
+// ============================================================
+function buildGrid(level) {
+    const cfg = LEVELS[level];
+    const grid = document.getElementById(cfg.gridId);
+    grid.innerHTML = '';
+    const total = cfg.total;
+
+    for (let i = 0; i < total; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.index = i;
+        cell.dataset.level = level;
+        cell.textContent = i + 1;
+        cell.addEventListener('click', () => toggleCell(level, i));
+        grid.appendChild(cell);
+    }
+    updateCount(level);
+}
+
+function toggleCell(level, index) {
+    const set = state.activeCells[level];
+    const cell = getCell(level, index);
+    if (set.has(index)) {
+        set.delete(index);
+        cell.classList.remove('filled', 'active');
+    } else {
+        set.add(index);
+        cell.classList.add('filled');
+        cell.classList.add('active');
+        // 3-Achsen-Effekt: Wenn Axis aktiv, zusätzliche Zellen triggern
+        if (state.activeAxis) {
+            triggerAxisEffect(level, index);
+        }
+    }
+    updateCount(level);
+    log(`Zelle ${index+1} auf Etage ${level} ${set.has(index) ? 'aktiviert' : 'deaktiviert'}`);
+}
+
+function getCell(level, index) {
+    const cfg = LEVELS[level];
+    const grid = document.getElementById(cfg.gridId);
+    return grid.children[index];
+}
+
+function updateCount(level) {
+    const cfg = LEVELS[level];
+    const count = state.activeCells[level].size;
+    document.getElementById(cfg.countId).textContent = `${count}/${cfg.total}`;
+    updateTotalCounter();
+}
+
+function updateTotalCounter() {
+    const total = [1, 2, 3].reduce((sum, l) => sum + state.activeCells[l].size, 0);
+    document.getElementById('counter').textContent = `${total}/819`; // 9+81+729 = 819
+}
+
+// ============================================================
+// 4. TRIGGER-FUNKTIONEN
+// ============================================================
+function triggerLevel(level) {
+    const cfg = LEVELS[level];
+    const grid = document.getElementById(cfg.gridId);
+    const cells = grid.querySelectorAll('.cell');
+    const set = state.activeCells[level];
+
+    // Alle Zellen der Etage toggeln
+    cells.forEach((cell, i) => {
+        if (set.has(i)) {
+            set.delete(i);
+            cell.classList.remove('filled', 'active');
+        } else {
+            set.add(i);
+            cell.classList.add('filled', 'active');
+            // Trigger-Animation
+            cell.classList.remove('triggered');
+            void cell.offsetWidth;
+            cell.classList.add('triggered');
+        }
+    });
+
+    updateCount(level);
+    log(`🔴 Etage ${level} getriggert — ${cfg.total} Zellen`, `level${level}`);
+    document.getElementById('status-text').textContent = `Etage ${level} getriggert`;
+    document.getElementById('status-dot').className = 'status-dot on';
+    setTimeout(() => document.getElementById('status-dot').className = 'status-dot off', 1000);
+}
+
+function triggerAxis(axis) {
+    state.activeAxis = axis;
+    const axisColors = { x: 'axis-x', y: 'axis-y', z: 'axis-z' };
+
+    // Alle Zellen mit passenden Indizes aktivieren
+    [1, 2, 3].forEach(level => {
+        const cfg = LEVELS[level];
+        const size = cfg.size;
+        const set = state.activeCells[level];
+        const grid = document.getElementById(cfg.gridId);
+        const cells = grid.querySelectorAll('.cell');
+
+        cells.forEach((cell, i) => {
+            const row = Math.floor(i / size);
+            const col = i % size;
+            let match = false;
+            if (axis === 'x') match = col === 0 || col === size - 1 || col === Math.floor(size/2);
+            if (axis === 'y') match = row === 0 || row === size - 1 || row === Math.floor(size/2);
+            if (axis === 'z') match = (row + col) % 3 === 0;
+
+            if (match) {
+                set.add(i);
+                cell.classList.add('filled', 'active');
+                cell.classList.remove('triggered');
+                void cell.offsetWidth;
+                cell.classList.add('triggered');
+            } else {
+                // Nichts deaktivieren — nur hinzufügen
+            }
+        });
+        updateCount(level);
+    });
+
+    log(`📐 Achse ${axis.toUpperCase()} getriggert`, `axis-${axis}`);
+    document.getElementById('status-text').textContent = `Achse ${axis.toUpperCase()} aktiv`;
+}
+
+function triggerSync() {
+    log('⟳ SYNC — Alle Ebenen synchronisieren');
+
+    // Gleiche Muster auf allen Ebenen erzeugen
+    // Pattern: Alle Zellen mit Index durch 3 teilbar
+    [1, 2, 3].forEach(level => {
+        const cfg = LEVELS[level];
+        const set = state.activeCells[level];
+        const grid = document.getElementById(cfg.gridId);
+        const cells = grid.querySelectorAll('.cell');
+
+        // Erst alle leeren
+        set.clear();
+        cells.forEach(c => c.classList.remove('filled', 'active', 'triggered'));
+
+        // Dann Muster: primzahlen-artig
+        cells.forEach((cell, i) => {
+            if (i % 3 === 0 || i % 7 === 0) {
+                set.add(i);
+                cell.classList.add('filled', 'active');
+                cell.classList.remove('triggered');
+                void cell.offsetWidth;
+                cell.classList.add('triggered');
+            }
+        });
+        updateCount(level);
+    });
+
+    document.getElementById('status-text').textContent = 'SYNC OK';
+}
+
+function triggerReset() {
+    [1, 2, 3].forEach(level => {
+        state.activeCells[level].clear();
+        const cfg = LEVELS[level];
+        const grid = document.getElementById(cfg.gridId);
+        grid.querySelectorAll('.cell').forEach(c => {
+            c.classList.remove('filled', 'active', 'triggered');
+        });
+        updateCount(level);
+    });
+    state.activeAxis = null;
+    document.getElementById('status-text').textContent = 'RESET';
+    log('⟲ RESET — Alle Ebenen zurückgesetzt');
+}
+
+function toggleAuto() {
+    state.autoMode = !state.autoMode;
+    const btn = document.getElementById('btn-auto');
+    btn.classList.toggle('active', state.autoMode);
+    btn.textContent = state.autoMode ? '⏸ PAUSE' : '▶ AUTO';
+
+    if (state.autoMode) {
+        log('▶ AUTO-Modus gestartet');
+        state.timer = setInterval(() => {
+            const level = Math.floor(Math.random() * 3) + 1;
+            triggerLevel(level);
+        }, 2000);
+    } else {
+        clearInterval(state.timer);
+        log('⏸ AUTO-Modus pausiert');
+    }
+}
+
+// ============================================================
+// 5. AXIS-EFFEKT (bei Zellenklick mit aktiver Achse)
+// ============================================================
+function triggerAxisEffect(level, index) {
+    const cfg = LEVELS[level];
+    const size = cfg.size;
+    const row = Math.floor(index / size);
+    const col = index % size;
+    const set = state.activeCells[level];
+    const grid = document.getElementById(cfg.gridId);
+    const cells = grid.querySelectorAll('.cell');
+
+    // Wir triggern verbundene Zellen basierend auf Axis
+    let neighbors = [];
+    if (state.activeAxis === 'x') {
+        // Alle in gleicher Spalte
+        for (let r = 0; r < size; r++) {
+            neighbors.push(r * size + col);
+        }
+    } else if (state.activeAxis === 'y') {
+        // Alle in gleicher Zeile
+        for (let c = 0; c < size; c++) {
+            neighbors.push(row * size + c);
+        }
+    } else if (state.activeAxis === 'z') {
+        // Diagonale
+        for (let d = -size; d < size; d++) {
+            const nr = row + d;
+            const nc = col + d;
+            if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+                neighbors.push(nr * size + nc);
+            }
+        }
+    }
+
+    neighbors.forEach(i => {
+        if (i !== index) {
+            set.add(i);
+            const cell = cells[i];
+            cell.classList.add('filled', 'active');
+            cell.classList.remove('triggered');
+            void cell.offsetWidth;
+            cell.classList.add('triggered');
+        }
+    });
+    updateCount(level);
+}
+
+// ============================================================
+// 6. LOG
+// ============================================================
+function log(msg, className = '') {
+    const logDiv = document.getElementById('log');
+    const entry = document.createElement('div');
+    entry.className = 'entry';
+    const time = new Date().toLocaleTimeString();
+    entry.innerHTML = `
+        <span class="time">[${time}]</span>
+        <span class="msg ${className}">${msg}</span>
+    `;
+    logDiv.appendChild(entry);
+    logDiv.scrollTop = logDiv.scrollHeight;
+    state.log.push({ time, msg, className });
+    if (state.log.length > 100) {
+        state.log.shift();
+        logDiv.removeChild(logDiv.firstChild);
+    }
+}
+
+// ============================================================
+// 7. EVENT BINDING
+// ============================================================
+document.querySelectorAll('.btn-trigger[data-level]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const level = parseInt(btn.dataset.level);
+        triggerLevel(level);
+        btn.classList.toggle('active');
+    });
+});
+
+document.querySelectorAll('.btn-trigger[data-axis]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const axis = btn.dataset.axis;
+        // Toggle: Wenn gleiche Achse, deaktivieren
+        if (state.activeAxis === axis) {
+            state.activeAxis = null;
+            btn.classList.remove('active');
+            log(`Achse ${axis.toUpperCase()} deaktiviert`);
+        } else {
+            document.querySelectorAll('.btn-trigger[data-axis]').forEach(b => b.classList.remove('active'));
+            state.activeAxis = axis;
+            btn.classList.add('active');
+            triggerAxis(axis);
+        }
+    });
+});
+
+document.getElementById('btn-sync').addEventListener('click', triggerSync);
+document.getElementById('btn-reset').addEventListener('click', triggerReset);
+document.getElementById('btn-auto').addEventListener('click', toggleAuto);
+
+// ============================================================
+// 8. TASTATUR-KURZBEFEHLE
+// ============================================================
+document.addEventListener('keydown', (e) => {
+    if (e.key === '1') triggerLevel(1);
+    if (e.key === '2') triggerLevel(2);
+    if (e.key === '3') triggerLevel(3);
+    if (e.key === 'x') document.querySelector('[data-axis="x"]').click();
+    if (e.key === 'y') document.querySelector('[data-axis="y"]').click();
+    if (e.key === 'z') document.querySelector('[data-axis="z"]').click();
+    if (e.key === 's') triggerSync();
+    if (e.key === 'r') triggerReset();
+    if (e.key === ' ') { e.preventDefault(); toggleAuto(); }
+});
+
+// ============================================================
+// 9. INIT
+// ============================================================
+[1, 2, 3].forEach(level => buildGrid(level));
+
+// Initial ein paar Zellen aktivieren für Demo
+setTimeout(() => {
+    [1, 2, 3].forEach(level => {
+        const cfg = LEVELS[level];
+        const set = state.activeCells[level];
+        const grid = document.getElementById(cfg.gridId);
+        const cells = grid.querySelectorAll('.cell');
+        // Muster: jede 3. Zelle
+        cells.forEach((cell, i) => {
+            if (i % 3 === 0) {
+                set.add(i);
+                cell.classList.add('filled');
+            }
+        });
+        updateCount(level);
+    });
+    log('⚡ Initiales Muster geladen (jede 3. Zelle)');
+}, 100);
+
+console.log('⚡ RESPO TRIGGER ENGINE geladen');
+console.log('⌨️  1,2,3 = Etagen  |  x,y,z = Achsen  |  s = Sync  |  r = Reset  |  space = Auto');
+
+</script>
+</body>
+</html>

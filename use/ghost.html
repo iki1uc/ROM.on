@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ghost‑Scan</title>
+<style>
+  body { background:#000; color:#0ff; font-family:Arial; padding:20px; }
+</style>
+</head>
+<body>
+
+<h1>Ghost‑Scan – NC‑Zeitlagen‑Analyse</h1>
+
+<p>Gestern → Heute</p>
+<p>Produktivität: <span id="prod"></span></p>
+
+<script>
+  const gestern = { x:1, y:0, t:3, h:2, b:1, evo:"upg" };
+  const heute   = { x:2, y:0, t:4, h:4, b:0, evo:"upd" };
+
+  const produktiv = ((heute.x+heute.t+heute.h) - (gestern.x+gestern.t+gestern.h)) * 3.2;
+  document.getElementById("prod").innerText = produktiv.toFixed(2) + "%";
+</script>
+
+</body>
+</html>

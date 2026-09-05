@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>A81-Axis · TECH/EVO Dominant</title>
+
+<script src="A81-Axis.js"></script>
+<script src="M-Axis.js"></script>
+<script src="T-Axis.js"></script>
+<script src="A81-TECH-EVO.js"></script>
+
+<style>
+body { background:#000; color:#0f0; font-family:monospace; padding:40px; }
+pre { background:#111; padding:20px; border-left:3px solid #0f0; }
+h1 { color:#0f0; text-align:center; }
+</style>
+</head>
+
+<body>
+
+<h1>A81-Axis · TECH/EVO · Lead</h1>
+<pre id="out">Lade…</pre>
+
+<script>
+const evo   = A81_TECH_EVO.build();
+const axis  = A81_AXIS.compute();
+const m     = M_AXIS.compute();
+const t     = T_AXIS.compute();
+
+const out = {
+    EVO: evo,
+    AXIS: axis,
+    MATH: m,
+    TRANSFER: t
+};
+
+document.getElementById("out").innerText =
+    JSON.stringify(out, null, 2);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>A81‑Axis · Hyperraum</title>
+
+<style>
+body { background:#000; color:#0f0; font-family:monospace; padding:40px; }
+nav a { color:#6cf; margin-right:20px; cursor:pointer; font-size:20px; }
+.box { background:#111; padding:20px; margin:20px 0; border-left:3px solid #6cf; display:none; }
+pre { white-space:pre; }
+
+#geoHome {
+    width:360px;
+    height:360px;
+    margin:auto;
+    border-radius:50%;
+    border:3px solid #0f0;
+    position:relative;
+}
+
+.dot {
+    width:12px;
+    height:12px;
+    background:#0f0;
+    border-radius:50%;
+    position:absolute;
+}
+
+#effHome {
+    background:#111;
+    padding:20px;
+    margin:20px auto;
+    border-left:3px solid #6cf;
+    width:360px;
+}
+</style>
+
+<script src="A81-Axis.js"></script>
+<script src="M-Axis.js"></script>
+<script src="T-Axis.js"></script>
+
+</head>
+
+<body>
+
+<h1>A81‑Axis · Hyperraum</h1>
+
+<!-- ⭐ GEO direkt im Homepage-Fenster -->
+<div id="geoHome"></div>
+
+<!-- ⭐ Effekt direkt im Homepage-Fenster -->
+<div id="effHome"></div>
+
+<nav>
+    <a onclick="show('axis')">A81‑Axis</a>
+    <a onclick="show('mAxis')">M‑Axis</a>
+    <a onclick="show('tAxis')">T‑Axis</a>
+    <a onclick="show('raw6')">6E/6D</a>
+    <a onclick="show('raw64')">64‑Matrix</a>
+    <a onclick="show('raw81')">81‑Achsen</a>
+    <a onclick="show('sys')">System</a>
+    <a onclick="show('stationen')">Stationen</a>
+</nav>
+
+<div id="axis" class="box"></div>
+<div id="mAxis" class="box"></div>
+<div id="tAxis" class="box"></div>
+
+<div id="raw6" class="box">

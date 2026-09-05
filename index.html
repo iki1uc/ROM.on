@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⚙️ RESPO‑SCHALTUNG · 756 ACHSEN · ZAHNRAD‑METHODE</title>
+  <title>⚙️ RESPO‑SCHALTUNG 2.0 · 756 ACHSEN · ZAHNRAD‑METHODE</title>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -151,9 +151,13 @@
     }
 
     .cell.connected {
-      background: rgba(100, 200, 255, 0.3);
+      background: rgba(100, 200, 255, 0.25);
       border-color: #70c8ff;
-      box-shadow: 0 0 20px rgba(100, 200, 255, 0.2);
+      box-shadow: 0 0 16px rgba(100, 200, 255, 0.2);
+    }
+
+    .cell.ds9-glow {
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.6) !important;
     }
 
     .cell.wave {
@@ -208,8 +212,8 @@
       border-color: rgba(255, 215, 0, 0.1);
       color: #e8d080;
     }
-    .controls button.ds9:hover {
-      background: rgba(255, 215, 0, 0.05);
+    .controls button.ds9.active {
+      background: rgba(255,215,0,0.08);
       border-color: #f0d080;
     }
     .controls button.danger {
@@ -239,7 +243,7 @@
       padding: 6px 14px;
       font-size: 10px;
       color: #4a6a7a;
-      max-height: 50px;
+      max-height: 60px;
       overflow-y: auto;
       border: 1px solid rgba(100, 140, 170, 0.02);
       margin-top: 8px;
@@ -253,6 +257,7 @@
     .log .achse { color: #70c8ff; }
     .log .6d { color: #80d0b0; }
     .log .connect { color: #70c8ff; }
+    .log .warn { color: #f0a070; }
 
     .footer {
       text-align: center;
@@ -278,7 +283,7 @@
 <div class="container">
 
   <div class="header">
-    <h1>⚙️ RESPO‑SCHALTUNG <small>756 ACHSEN · ZAHNRAD‑METHODE</small></h1>
+    <h1>⚙️ RESPO‑SCHALTUNG 2.0 <small>756 ACHSEN · ZAHNRAD‑METHODE</small></h1>
     <div class="status-badge">
       <span><span class="dot on" id="dotSchaltung"></span> SCHALTUNG</span>
       <span><span class="dot" id="dotVerbindung"></span> VERBINDUNG</span>
@@ -305,24 +310,23 @@
   </div>
 
   <div class="log" id="log">
-    [⚙️] Respo‑Schaltung initialisiert · alle Dateien als Zellen
+    [⚙️] RESPO‑SCHALTUNG 2.0 · Zahnrad‑Mechanik optimiert
   </div>
 
   <div class="footer">
-    <span class="gold">★</span> JEDE ZELLE = EINE DATEI · <span class="silver">Zahnrad‑Mechanik aktiv</span>
+    <span class="gold">★</span> PLATZHALTER IGNORIERT · DEAKTIVIEREN RÄUMT VERBINDUNGEN · <span class="silver">NC‑RAW 2.0</span>
   </div>
 </div>
 
 <script>
   // ==============================================================
-  //  RESPO‑SCHALTUNG · 756 ACHSEN · ZAHNRAD‑METHODE
-  //  Jede Zelle repräsentiert eine Datei aus dem Repository.
-  //  Klick aktiviert die Zelle und verbindet sie mit allen anderen
-  //  Zellen, die denselben Namenspräfix haben.
+  //  RESPO‑SCHALTUNG 2.0 – 756 ACHSEN – ZAHNRAD‑METHODE
+  //  Fix: Platzhalter werden ignoriert, Deaktivieren löscht Verbindungen
+  //  Auto‑Pulse überschreibt keine aktiven Zellen, DS9 addiert nur
   // ==============================================================
 
-  // ─── DATEILISTE AUS FILES.TXT (manuell übernommen) ──────────
-  const fileList = [
+  // ─── DATEILISTE (bereinigt, doppelte Einträge entfernt) ──────
+  const rawFileList = [
     "3.rom", "3hit90.js", "3×1.js", "3×3.js", "9×9.js",
     "CODEOWNERS.md", "CONTRIBUTING.md", "ID.json", "README.md",
     "anker.js", "api.js", "arbeit.js", "atom.raw.js", "build.js",
@@ -342,47 +346,33 @@
     "a81.raw", "engine.js", "f.raw", "index.html", "m.raw", "m64.raw",
     "o.raw", "score.html", "stationen.html", "sys.raw", "t9.raw",
     "tem.raw", "tmp.raw", "u.raw",
-    "9", "3hit90.js", "3×1.js", "3×3.js", "9.rom", "9×9.js",
-    "CODEOWNERS.md", "CONTRIBUTING.md", "ID.json", "README.md",
-    "anker.js", "api.js", "arbeit.js", "atom.raw.js", "build.js",
-    "cache.js", "cache.raw.js", "call.js", "clock.js", "corridoor.js",
-    "cpu.js", "cpu.raw.js", "echo.zahn.js", "energie.raw.js",
-    "flanke.js", "geo.js", "gleichung.js", "gpu.js", "gpu.raw.js",
-    "hall.rad.js", "mac.js", "mass.js", "pipe.js", "pipe.pipeline.js",
-    "rad.js", "raid.pipeline.js", "ram.js", "ram.raw.js", "recall.js",
-    "respo360.js", "respoDashboard.js", "rom.js", "rom.raw.js",
-    "run.over", "schuss.js", "scsi.raid", "stage.js", "stage.pipeline.js",
-    "status.json", "time.js", "use.js", "user.js", "verfahren.js",
-    "work.js", "zahn.js", "ziel.js",
-    "AURA", "use.user", "user.use", "MANA", "use.user", "user.use",
-    "ZEN", "use.user", "user.use", "use",
+    "9", "AURA", "use.user", "user.use", "MANA", "ZEN", "use",
     "243", "27.js", "3.js", "81.js", "81.room", "9.js", "9hoch9.json",
-    "ID.html", "LICENSE-CLOSED.txt", "NC.math", "OUR.js",
-    "PRE9×9.math", "README.md", "ULTRA‑NC3×3.room",
-    "ULTRA‑NC9×9.room", "X.room.CORE", "X.room.IN", "X.room.OUT",
-    "api.js", "axes.js", "cube9.js", "cxr.orbit.js", "fusion9.js",
-    "ghost.html", "ghost.js", "index.html", "lage.js",
+    "LICENSE-CLOSED.txt", "NC.math", "OUR.js", "PRE9×9.math",
+    "ULTRA‑NC3×3.room", "ULTRA‑NC9×9.room", "X.room.CORE",
+    "X.room.IN", "X.room.OUT", "axes.js", "cube9.js", "cxr.orbit.js",
+    "fusion9.js", "ghost.html", "ghost.js", "lage.js",
     "navigator9.js", "pipeline12.master.js", "respo_bridge.js",
     "rith.engine.js", "schnitt.js", "sli.ready", "tmp.js",
-    "ultra.kernel.js", "user.use", "user",
-    "3hoch3.js", "3hoch3.room", "3o3.js", "4u.html", "ID.html",
-    "README.md", "corridoor.transwarp.nc.js", "index.html", "pos.js",
-    "schnitt.js", "use,user",
-    "HOLO.engine.js", "HOLO.room.js", "NC.room.js",
+    "ultra.kernel.js", "user", "3hoch3.js", "3hoch3.room", "3o3.js",
+    "4u.html", "corridoor.transwarp.nc.js", "pos.js",
+    "use,user", "HOLO.engine.js", "HOLO.room.js", "NC.room.js",
     "RAWATOR.geo.json", "RAWATOR.id.json", "RESPO.room.js",
     "SYS.js", "atom.js", "axiom.js", "beam.js", "beam.json",
-    "core.js", "geo.md", "index.html", "molecule.js",
-    "M.room.js", "chess.role.js", "matrix.js", "VEC128", "VEC128.js",
-    "VECTO8", "matrix81.js", "VECTOR", "vector.js",
-    "12ALL.master.js", "BETA.js", "ECO.js", "GAMMA.js", "HTML.js",
-    "INDEX.hyperraum.js", "INDEX.portal.js", "INDEX.respo.js",
-    "INDEX.warb.js", "MEGA_INDEX.js", "MEGA_INDEX.zoom.js",
-    "RUN360.js", "RUN8.js", "live.js",
+    "core.js", "geo.md", "molecule.js", "M.room.js", "chess.role.js",
+    "matrix.js", "VEC128", "VEC128.js", "VECTO8", "matrix81.js",
+    "VECTOR", "vector.js", "12ALL.master.js", "BETA.js", "ECO.js",
+    "GAMMA.js", "HTML.js", "INDEX.hyperraum.js", "INDEX.portal.js",
+    "INDEX.respo.js", "INDEX.warb.js", "MEGA_INDEX.js",
+    "MEGA_INDEX.zoom.js", "RUN360.js", "RUN8.js", "live.js",
     "AUTO.POS", "AUTO.run", "AUTO.sys", "SLAVE.sys",
     "VECTOR_MEASURE", "VECTOR_index", "VECTOR_index.list.index.allrespo",
     "VECTOR_list", "VECTOR_run", "auto.list", "master.sys", "vector.sys",
-    "ID.html", "README.md", "a.list", "index.html"
+    "a.list"
   ];
+
+  // Duplikate entfernen
+  const fileList = [...new Set(rawFileList)];
 
   // ─── GRID ────────────────────────────────────────────────────
   const gridEl = document.getElementById('grid');
@@ -397,8 +387,9 @@
   let ds9Mode = false;
   let comboCount = 0;
 
-  // Funktion: Präfix extrahieren (erste Ziffern oder erste Buchstaben)
+  // ─── PRÄFIX-LOGIK (ignoriert Platzhalter) ──────────────────
   function getPrefix(name) {
+    if (name === '·' || name === '.') return null; // Platzhalter ignorieren
     const match = name.match(/^([0-9]+|[A-Za-z]+)/);
     return match ? match[1] : name.substring(0, 1);
   }
@@ -407,12 +398,12 @@
   for (let i = 0; i < TOTAL; i++) {
     const cell = document.createElement('div');
     cell.className = 'cell';
-    // Dateiname zuweisen, falls vorhanden, sonst Platzhalter
     const fileName = i < fileList.length ? fileList[i] : '·';
     cell.textContent = fileName;
     cell.dataset.index = i;
     cell.dataset.file = fileName;
-    cell.dataset.prefix = getPrefix(fileName);
+    const prefix = getPrefix(fileName);
+    cell.dataset.prefix = prefix || ''; // leer für Platzhalter
 
     cell.addEventListener('click', () => handleCellClick(i));
 
@@ -426,23 +417,34 @@
     const fileName = cell.dataset.file;
     const prefix = cell.dataset.prefix;
 
-    // Zelle aktivieren (toggle)
-    if (activeIndex === index) {
-      // bereits aktiv -> deaktivieren
-      deactivateCell(index);
-      activeIndex = -1;
-      log(`⛔ ${fileName} deaktiviert`, 'flow');
-    } else {
-      // vorherige deaktivieren
-      if (activeIndex >= 0) deactivateCell(activeIndex);
-      // neue aktivieren
-      activateCell(index);
-      activeIndex = index;
-      log(`🔧 ${fileName} aktiviert (Präfix: ${prefix})`, 'connect');
-
-      // Verbindung zu allen Zellen mit gleichem Präfix herstellen
-      connectWithPrefix(prefix, index);
+    // Platzhalter ignorieren (keine Verbindungen)
+    if (!prefix || prefix === '') {
+      log(`⛔ Platzhalter-Zelle ignoriert (keine Verbindung)`, 'warn');
+      return;
     }
+
+    // Toggle: wenn bereits aktiv, deaktivieren (inkl. Verbindungen löschen)
+    if (activeIndex === index) {
+      deactivateCell(index);
+      clearConnections();
+      activeIndex = -1;
+      log(`⛔ ${fileName} deaktiviert · Verbindungen gelöscht`, 'flow');
+      updateStats();
+      return;
+    }
+
+    // Vorherige deaktivieren (Verbindungen bleiben bestehen, bis neue gesetzt werden)
+    if (activeIndex >= 0) {
+      deactivateCell(activeIndex);
+    }
+
+    // Neue aktivieren
+    activateCell(index);
+    activeIndex = index;
+    log(`🔧 ${fileName} aktiviert (Präfix: ${prefix})`, 'connect');
+
+    // Verbindung zu allen Zellen mit gleichem Präfix herstellen (außer Platzhalter)
+    connectWithPrefix(prefix, index);
     updateStats();
   }
 
@@ -450,7 +452,6 @@
     const cell = cells[index];
     cell.classList.add('active');
     cell.style.transform = 'scale(1.1)';
-    // Sound-Effekt (simuliert)
     playTone(600 + Math.random() * 200, 0.08);
   }
 
@@ -461,14 +462,17 @@
   }
 
   function connectWithPrefix(prefix, excludeIndex) {
-    // Alle bestehenden Verbindungen zurücksetzen
+    // Bestehende Verbindungen löschen
     clearConnections();
 
     let count = 0;
     cells.forEach((cell, idx) => {
       if (idx === excludeIndex) return;
-      if (cell.dataset.prefix === prefix) {
+      const cellPrefix = cell.dataset.prefix;
+      if (cellPrefix && cellPrefix === prefix) {
         cell.classList.add('connected');
+        // DS9-Glow zusätzlich, wenn aktiv
+        if (ds9Mode) cell.classList.add('ds9-glow');
         connectedIndices.push(idx);
         count++;
       }
@@ -477,19 +481,10 @@
     if (count > 0) {
       log(`🔗 ${count} Verbindungen zu Präfix "${prefix}" hergestellt`, 'connect');
       document.getElementById('dotVerbindung').className = 'dot connected';
-      // Combo zählt
       comboCount++;
       if (comboCount >= 3) {
         log(`⚡ COMBO! ${comboCount} Verbindungen in Folge`, 'whirl');
         comboCount = 0;
-      }
-      // DS9-Effekt bei aktiver Verbindung
-      if (ds9Mode) {
-        cells.forEach(c => {
-          if (c.classList.contains('connected')) {
-            c.style.boxShadow = '0 0 30px rgba(255,215,0,0.6)';
-          }
-        });
       }
     } else {
       log(`⚠️ Keine weiteren Dateien mit Präfix "${prefix}"`, 'flow');
@@ -499,11 +494,31 @@
 
   function clearConnections() {
     connectedIndices.forEach(idx => {
-      cells[idx].classList.remove('connected');
-      cells[idx].style.boxShadow = '';
+      const cell = cells[idx];
+      cell.classList.remove('connected');
+      cell.classList.remove('ds9-glow');
+      cell.style.boxShadow = '';
     });
     connectedIndices = [];
     document.getElementById('dotVerbindung').className = 'dot';
+  }
+
+  // ─── DS9 ──────────────────────────────────────────────────────
+  function toggleDs9() {
+    ds9Mode = !ds9Mode;
+    document.getElementById('btnDs9').classList.toggle('active', ds9Mode);
+    log(ds9Mode ? '★ DS9 aktiv – goldener Zusatzglow' : '★ DS9 inaktiv', 'ds9');
+
+    // Bestehenden Verbindungen DS9-Glow hinzufügen/entfernen (ohne connected zu überschreiben)
+    connectedIndices.forEach(idx => {
+      const cell = cells[idx];
+      if (ds9Mode) {
+        cell.classList.add('ds9-glow');
+      } else {
+        cell.classList.remove('ds9-glow');
+        cell.style.boxShadow = ''; // connected-shadow bleibt durch Klasse
+      }
+    });
   }
 
   // ─── BUTTONS ──────────────────────────────────────────────────
@@ -513,6 +528,10 @@
       return;
     }
     const prefix = cells[activeIndex].dataset.prefix;
+    if (!prefix) {
+      log('⚠️ Platzhalter kann nicht verbinden', 'warn');
+      return;
+    }
     connectWithPrefix(prefix, activeIndex);
   });
 
@@ -522,24 +541,12 @@
       activeIndex = -1;
     }
     clearConnections();
+    comboCount = 0;
     log('↩️ Alle Verbindungen zurückgesetzt', 'flow');
     updateStats();
   });
 
-  document.getElementById('btnDs9').addEventListener('click', () => {
-    ds9Mode = !ds9Mode;
-    document.getElementById('btnDs9').style.borderColor = ds9Mode ? '#f0d080' : '';
-    log(ds9Mode ? '★ DS9 aktiv – goldene Verbindungen' : '★ DS9 inaktiv', 'ds9');
-    if (ds9Mode) {
-      connectedIndices.forEach(idx => {
-        cells[idx].style.boxShadow = '0 0 30px rgba(255,215,0,0.6)';
-      });
-    } else {
-      connectedIndices.forEach(idx => {
-        cells[idx].style.boxShadow = '';
-      });
-    }
-  });
+  document.getElementById('btnDs9').addEventListener('click', toggleDs9);
 
   document.getElementById('btnReset').addEventListener('click', () => {
     if (activeIndex >= 0) deactivateCell(activeIndex);
@@ -549,8 +556,12 @@
     cells.forEach(c => {
       c.style.transform = '';
       c.style.boxShadow = '';
-      c.classList.remove('active', 'connected', 'wave');
+      c.classList.remove('active', 'connected', 'wave', 'ds9-glow');
     });
+    if (ds9Mode) {
+      ds9Mode = false;
+      document.getElementById('btnDs9').classList.remove('active');
+    }
     log('⟲ RESET · Schaltung neu formatiert', 'flow');
     updateStats();
   });
@@ -594,30 +605,35 @@
   function log(msg, type = 'ok') {
     const el = document.getElementById('log');
     const time = new Date().toLocaleTimeString();
-    const cls = ['ok','flow','whirl','ds9','achse','6d','connect'].includes(type) ? type : 'ok';
+    const cls = ['ok','flow','whirl','ds9','achse','6d','connect','warn'].includes(type) ? type : 'ok';
     el.innerHTML += `<div>[${time}] <span class="${cls}">${msg}</span></div>`;
     el.scrollTop = el.scrollHeight;
-    if (el.children.length > 25) el.removeChild(el.firstChild);
+    // Begrenzung ohne Overflow
+    while (el.children.length > 30) el.removeChild(el.firstChild);
   }
 
-  // ─── INIT ─────────────────────────────────────────────────────
-  log('⚙️ Respo‑Schaltung gestartet · ' + fileList.length + ' Dateien geladen', 'ds9');
-  log('⌨️  space=Verbinden  r=Zurück  d=DS9  x=Reset', 'flow');
-  updateStats();
-
-  // Automatischer Leuchteffekt (dezent)
+  // ─── AUTO‑PULSE (überschreibt keine aktiven Zellen) ──────────
   setInterval(() => {
-    if (!ds9Mode && activeIndex < 0) {
+    if (activeIndex < 0 && !ds9Mode) {
       const idx = Math.floor(Math.random() * TOTAL);
       const cell = cells[idx];
-      cell.style.transform = 'scale(1.04)';
-      cell.style.background = 'rgba(160,200,240,0.05)';
-      setTimeout(() => {
-        cell.style.transform = 'scale(1)';
-        cell.style.background = '';
-      }, 300);
+      // Nur wenn nicht aktiv oder verbunden
+      if (!cell.classList.contains('active') && !cell.classList.contains('connected')) {
+        cell.style.transform = 'scale(1.04)';
+        cell.style.background = 'rgba(160,200,240,0.05)';
+        setTimeout(() => {
+          cell.style.transform = 'scale(1)';
+          cell.style.background = '';
+        }, 300);
+      }
     }
   }, 800);
+
+  // ─── INIT ─────────────────────────────────────────────────────
+  log('⚙️ RESPO‑SCHALTUNG 2.0 gestartet · ' + fileList.length + ' Dateien (duplikatfrei)', 'ds9');
+  log('⌨️  space=Verbinden  r=Zurück  d=DS9  x=Reset', 'flow');
+  log('🔧 Platzhalter werden ignoriert · Deaktivieren löscht Verbindungen', 'achse');
+  updateStats();
 </script>
 </body>
 </html>

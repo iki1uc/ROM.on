@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧬 RAWATOR · LEBENDIG · 81-HOLOGRAMM · ANIME · SHUFFLE</title>
+
+<style>
+:root {
+    --bg: #0a0a12;
+    --fg: #0ff;
+    --gold: #ffd700;
+    --vital: #00ff88;
+    --co2: #ff6600;
+    --wasser: #66ccff;
+    --sauerstoff: #00ff88;
+    --anime: #ff66ff;
+    --shuffle: #ffaa00;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Consolas', monospace;
+    min-height: 100vh;
+    padding: 10px;
+}
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: rgba(10,10,20,0.7);
+    border: 1px solid rgba(255,170,0,0.05);
+    border-radius: 16px;
+    padding: 16px;
+    backdrop-filter: blur(10px);
+}
+.header {
+    text-align: center;
+    border-bottom: 1px solid rgba(255,170,0,0.05);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+}
+.header h1 {
+    font-size: 28px;
+    background: linear-gradient(90deg, #00ff88, #ff6600, #66ccff, #ff66ff, #ffaa00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 4px;
+}
+.header .sub {
+    color: #445555;
+    font-size: 11px;
+    letter-spacing: 2px;
+}
+.header .sub span { color: var(--gold); }
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+}
+@media (max-width: 1100px) { .grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+
+.panel {
+    background: rgba(10,10,20,0.4);
+    border: 1px solid rgba(255,255,255,0.02);
+    border-radius: 12px;
+    padding: 12px;
+}
+.panel h2 {
+    color: var(--gold);
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.02);
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+}
+.panel button {
+    background: rgba(20,35,35,0.2);
+    color: #668888;
+    border: 1px solid rgba(255,255,255,0.02);
+    padding: 4px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 9px;
+    transition: all 0.3s;
+    margin: 2px;
+}
+.panel button:hover { background: rgba(40,80,70,0.08); color: #aaeedd; }
+.panel button.gold { color: var(--gold); border-color: rgba(255,170,0,0.05); }
+.panel button.vital { color: var(--vital); border-color: rgba(0,255,136,0.05); }
+.panel button.co2 { color: var(--co2); border-color: rgba(255,102,0,0.05); }
+.panel button.wasser { color: var(--wasser); border-color: rgba(102,204,255,0.05); }
+.panel button.anime { color: var(--anime); border-color: rgba(255,102,255,0.05); }
+.panel button.shuffle { color: var(--shuffle); border-color: rgba(255,170,0,0.05); }
+
+#output {
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 10px;
+    min-height: 60px;
+    font-size: 10px;
+    line-height: 1.4;
+    border: 1px solid rgba(255,255,255,0.02);
+    margin-top: 8px;
+    white-space: pre-wrap;
+    color: #88ddbb;
+    font-family: monospace;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.status {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 10px;
+    margin-top: 10px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 6px;
+    font-size: 9px;
+    color: #445555;
+    border: 1px solid rgba(255,255,255,0.01);
+    flex-wrap: wrap;
+}
+.status span { color: #88ddbb; }
+
+.footer {
+    text-align: center;
+    margin-top: 12px;
+    padding: 10px;
+    color: #222;
+    font-size: 8px;
+    letter-spacing: 2px;
+    border-top: 1px solid rgba(255,255,255,0.01);
+}
+.footer span { color: var(--gold); }
+
+.metric-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 4px;
+    margin-top: 6px;
+}
+.metric {
+    background: #0e0e1a;
+    border: 1px solid #1a1a2a;
+    border-radius: 4px;
+    padding: 4px;
+    text-align: center;
+}
+.metric .label { color: #666; font-size: 6px; text-transform: uppercase; }
+.metric .value { font-size: 14px; font-weight: bold; }
+.metric.vital .value { color: var(--vital); }
+.metric.co2 .value { color: var(--co2); }
+.metric.wasser .value { color: var(--wasser); }
+.metric.sauerstoff .value { color: var(--sauerstoff); }
+
+.anime-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 2px;
+    margin-top: 6px;
+}
+.anime-frame {
+    background: #0e0e1a;
+    border: 1px solid #1a1a2a;
+    border-radius: 2px;
+    padding: 2px;
+    text-align: center;
+    font-size: 6px;
+    color: #666;
+}
+.anime-frame .id { color: var(--gold); font-weight: bold; }
+.anime-frame .vital { color: var(--vital); font-size: 8px; }
+.anime-frame.active { border-color: var(--anime); background: rgba(255,102,255,0.05); }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="header">
+    <h1>🧬 RAWATOR · LEBENDIG · 81-HOLOGRAMM · ANIME · SHUFFLE</h1>
+    <div class="sub">CO₂ · Wasser · Sauerstoff · Vitalität · <span>81 Hologramm · Shuffle Dancer · Anime</span></div>
+</div>
+
+<div class="grid">
+
+    <!-- ===== PANEL 1: VITAL · CO₂ · WASSER · SAUERSTOFF ===== -->
+    <div class="panel">
+        <h2>🧪 CO₂ · WASSER · SAUERSTOFF · VITAL</h2>
+        <button class="vital" onclick="showVital()">🌀 VITAL</button>
+        <button class="co2" onclick="showCO2()">💨 CO₂</button>
+        <button class="wasser" onclick="showWasser()">💧 WASSER</button>
+        <button class="sauerstoff" onclick="showSauerstoff()">💨 O₂</button>
+        <button class="gold" onclick="showAll()">⚡ ALLE</button>
+
+        <div class="metric-grid">
+            <div class="metric vital"><div class="label">🌀 VITAL</div><div class="value" id="vital-value">0.00</div></div>
+            <div class="metric co2"><div class="label">💨 CO₂</div><div class="value" id="co2-value">0.00</div></div>
+            <div class="metric wasser"><div class="label">💧 H₂O</div><div class="value" id="wasser-value">0.00</div></div>
+            <div class="metric sauerstoff"><div class="label">💨 O₂</div><div class="value" id="sauerstoff-value">0.00</div></div>
+        </div>
+
+        <div id="output">🧬 RAWATOR · Lebendig · 81-Hologramm bereit</div>
+    </div>
+
+    <!-- ===== PANEL 2: ANIME · SHUFFLE DANCER ===== -->
+    <div class="panel">
+        <h2>🎨 ANIME · SHUFFLE DANCER · 81 HOLOGRAMM</h2>
+        <button class="anime" onclick="showAnime()">🎨 ANIME</button>
+        <button class="shuffle" onclick="showShuffle()">🔄 SHUFFLE</button>
+        <button class="gold" onclick="showHologram()">🌀 HOLOGRAMM</button>
+        <button class="vital" onclick="shuffleDance()">💃 SHUFFLE DANCE</button>
+
+        <div class="anime-grid" id="anime-grid">
+            <div class="anime-frame active"><div class="id">A1</div><div class="vital">●</div></div>
+            <div class="anime-frame"><div class="id">A2</div><div class="vital">●</div></div>
+            <div class="anime-frame"><div class="id">A3</div><div class="vital">●</div></div>
+            <div class="anime-frame"><div class="id">A4</div><div class="vital">●</div></div>
+            <div class="anime-frame"><div class="id">A5</div><div class="vital">●</div></div>
+            <div class="anime-frame"><div class="id">A6</div><div class="vital">●</div></div>
+            <div class="anime-frame"><div class="id">A7</div><div class="vital">●</div></div>
+            <div class="anime-frame"><div class="id">A8</div><div class="vital">●</div></div>
+            <div class="anime-frame"><div class="id">A9</div><div class="vital">●</div></div>
+        </div>
+
+        <div id="anime-output" style="margin-top:4px;background:rgba(0,0,0,0.3);border-radius:4px;padding:6px;font-size:9px;color:#88ddbb;min-height:20px;">
+            🎨 81 Anime-Frames · Shuffle Dancer bereit
+        </div>
+    </div>
+
+    <!-- ===== PANEL 3: MESSGERÄT · EDITOR ===== -->
+    <div class="panel">
+        <h2>📊 UNIVERSALMESSGERÄT · EDITOR</h2>
+        <button class="gold" onclick="showMessgeraet()">📊 MESSGERÄT</button>
+        <button class="anime" onclick="showEditor()">✏️ EDITOR</button>
+        <button class="shuffle" onclick="editorReset()">⟲ EDITOR RESET</button>
+
+        <div id="messgeraet-output" style="margin-top:6px;background:rgba(0,0,0,0.3);border-radius:8px;padding:10px;font-size:10px;color:#88ddbb;min-height:50px;">
+            📊 Universal-Messgerät · Editor · bereit
+        </div>
+    </div>
+
+</div>
+
+<div class="status">
+    <span>🧬 VITAL: <span id="status-vital">0.00</span></span>
+    <span>🌀 HOLOGRAMM: <span id="status-hologramm">81</span></span>
+    <span>🎨 ANIME: <span id="status-anime">81</span></span>
+    <span>🔄 SHUFFLE: <span id="status-shuffle">81</span></span>
+</div>
+
+<div class="footer"><span>🧬</span> RAWATOR · LEBENDIG · 81-HOLOGRAMM · ANIME · SHUFFLE · <span>wieimmer4u</span></div>
+
+</div>
+
+<!-- CORE laedt zuerst und haengt RAWATOR in SYS.ROOM / SYS.PIPE ein -->
+<script type="module" src="./core.js"></script>
+
+<script type="module">
+// ============================================================
+// RAWATOR · LEBENDIG · DASHBOARD
+// ============================================================
+
+import { RAWATOR_LIFE } from './rawator-life.js';
+
+// ─── DOM ──────────────────────────────────────────────────────
+function log(msg) {
+    document.getElementById('output').textContent = msg;
+}
+
+function updateUI() {
+    const status = RAWATOR_LIFE.getStatus();
+    document.getElementById('vital-value').textContent = status.vital.toFixed(2);
+    document.getElementById('co2-value').textContent = status.co2?.vital?.toFixed(2) || '0.00';
+    document.getElementById('wasser-value').textContent = status.wasser?.vital?.toFixed(2) || '0.00';
+    document.getElementById('sauerstoff-value').textContent = status.sauerstoff?.vital?.toFixed(2) || '0.00';
+    document.getElementById('status-vital').textContent = status.vital.toFixed(2);
+    document.getElementById('status-hologramm').textContent = status.hologramm;
+    document.getElementById('status-anime').textContent = status.anime;
+    document.getElementById('status-shuffle').textContent = status.shuffle;
+}
+
+// ─── PANEL 1 ──────────────────────────────────────────────────
+window.showVital = function() {
+    const status = RAWATOR_LIFE.getStatus();
+    log(`🌀 VITAL: ${status.vital.toFixed(4)}\nCO₂: ${status.co2?.vital?.toFixed(4) || '0.0000'}\nWasser: ${status.wasser?.vital?.toFixed(4) || '0.0000'}\nO₂: ${status.sauerstoff?.vital?.toFixed(4) || '0.0000'}`);
+    updateUI();
+};
+
+window.showCO2 = function() {
+    const mol = RAWATOR_LIFE.co2;
+    log(`💨 CO₂\nName: ${mol.name}\nAtome: ${mol.atoms.join(' + ')}\nLadung: ${mol.charge}\nVital: ${mol.vital.toFixed(4)}`);
+    updateUI();
+};
+
+window.showWasser = function() {
+    const mol = RAWATOR_LIFE.wasser;
+    log(`💧 WASSER (H₂O)\nName: ${mol.name}\nAtome: ${mol.atoms.join(' + ')}\nLadung: ${mol.charge}\nVital: ${mol.vital.toFixed(4)}`);
+    updateUI();
+};
+
+window.showSauerstoff = function() {
+    const mol = RAWATOR_LIFE.sauerstoff;
+    log(`💨 SAUERSTOFF (O₂)\nName: ${mol.name}\nAtome: ${mol.atoms.join(' + ')}\nLadung: ${mol.charge}\nVital: ${mol.vital.toFixed(4)}`);
+    updateUI();
+};
+
+window.showAll = function() {
+    showVital();
+    setTimeout(showCO2, 100);
+    setTimeout(showWasser, 200);
+    setTimeout(showSauerstoff, 300);
+    log('⚡ ALLE WERTE AKTUALISIERT');
+};
+
+// ─── PANEL 2 ──────────────────────────────────────────────────
+window.showAnime = function() {
+    const frames = RAWATOR_LIFE.anime;
+    const grid = document.getElementById('anime-grid');
+    grid.innerHTML = '';
+    frames.slice(0, 9).forEach(f => {
+        const el = document.createElement('div');
+        el.className = 'anime-frame active';
+        el.innerHTML = `<div class="id">${f.id}</div><div class="vital">${f.vital.toFixed(2)}</div>`;
+        grid.appendChild(el);
+    });
+    document.getElementById('anime-output').textContent =
+        `🎨 Anime: ${frames.length} Frames · Vital ø ${(frames.reduce((a,b) => a + b.vital, 0) / frames.length).toFixed(2)}`;
+    log(`🎨 ANIME · ${frames.length} Frames geladen`);
+};
+
+window.showShuffle = function() {
+    const shuffle = RAWATOR_LIFE.shuffle;
+    const moves = shuffle.slice(0, 9).map(s => s.move).join(' ');
+    document.getElementById('anime-output').textContent =
+        `🔄 Shuffle Dancer: ${shuffle.length} Steps · Moves: ${moves}`;
+    log(`🔄 SHUFFLE · ${shuffle.length} Steps · ${moves}`);
+};
+
+window.showHologram = function() {
+    const proof = RAWATOR_LIFE.hologramProof();
+    document.getElementById('anime-output').textContent =
+        `🌀 HOLOGRAMM-BEWEIS\nTotal: ${proof.total}\nLebendig: ${proof.lebendig}\nVital: ${proof.vital.toFixed(4)}\nCO₂: ${proof.co2.vital.toFixed(4)}\nWasser: ${proof.wasser.vital.toFixed(4)}\nO₂: ${proof.sauerstoff.vital.toFixed(4)}`;
+    log(`🌀 HOLOGRAMM · ${proof.lebendig}/${proof.total} lebendig`);
+};
+
+window.shuffleDance = function() {
+    const shuffle = RAWATOR_LIFE.shuffle;
+    const moves = shuffle.map(s => s.move);
+    const randomMove = moves[Math.floor(Math.random() * moves.length)];
+    document.getElementById('anime-output').textContent =
+        `💃 SHUFFLE DANCE · Move: ${randomMove}\n${moves.slice(0, 18).join(' ')}`;
+    log(`💃 SHUFFLE DANCE · ${randomMove}`);
+};
+
+// ─── PANEL 3 ──────────────────────────────────────────────────
+window.showMessgeraet = function() {
+    const m = RAWATOR_LIFE.messgerät;
+    document.getElementById('messgeraet-output').textContent =
+        `📊 UNIVERSALMESSGERÄT\nVital: ${m.vital.toFixed(4)}\nCO₂: ${m.co2?.vital?.toFixed(4) || '0.0000'}\nWasser: ${m.wasser?.vital?.toFixed(4) || '0.0000'}\nO₂: ${m.sauerstoff?.vital?.toFixed(4) || '0.0000'}\nHologramm: ${m.hologramm}\nAnime: ${m.anime}\nShuffle: ${m.shuffle}\nStatus: ${m.status}`;
+    log('📊 MESSGERÄT angezeigt');
+};
+
+window.showEditor = function() {
+    const editor = RAWATOR_LIFE.editor;
+    const first = RAWATOR_LIFE.anime[0];
+    document.getElementById('messgeraet-output').textContent =
+        `✏️ UNIVERSAL EDITOR\nErster Frame: ${first?.id || '—'}\nVital: ${first?.vital?.toFixed(4) || '—'}\n\nFunktionen:\n- edit(id, value)\n- shuffle(step, move)\n- reset()\n\nBeispiel: edit('ANIME-1', 0.9)`;
+    log('✏️ EDITOR bereit');
+};
+
+window.editorReset = function() {
+    RAWATOR_LIFE.editor.reset();
+    updateUI();
+    log('⟲ EDITOR RESET durchgeführt');
+};
+
+// ─── START ──────────────────────────────────────────────────
+updateUI();
+log('🧬 RAWATOR · LEBENDIG · 81-HOLOGRAMM · ANIME · SHUFFLE geladen');
+console.log('⌨️ Buttons bereit');
+</script>
+
+</body>
+</html>

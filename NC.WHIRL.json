@@ -1,0 +1,54 @@
+{
+    "nc-whirl": "root-whirl-core",
+    "version": "1.0.0",
+
+    "root": {
+        "type": "whirl-tree",
+        "description": "NC Whirl Baum – Spiralimpulse für 9x9 neuronale Matrix",
+        "connects": [
+            "NC.9y9.json",
+            "NC.room.js",
+            "HOLO.room.js",
+            "RAWATOR_81",
+            "SYS.generator.js",
+            "AXIOM.FLUSS"
+        ]
+    },
+
+    "whirl": {
+        "spin": {
+            "cw":  "clockwise",
+            "ccw": "counter-clockwise"
+        },
+        "spiral": {
+            "in":  "spiral-in",
+            "out": "spiral-out"
+        },
+        "pulse": {
+            "soft": 0.3,
+            "medium": 0.6,
+            "strong": 1.0
+        }
+    },
+
+    "axis": {
+        "flow":   "fluss",
+        "focus":  "fokus",
+        "light":  "licht",
+        "vital":  "vital",
+        "balance": "balance",
+        "drift":  "drift"
+    },
+
+    "matrix": [
+        ["cw", "in",  "soft",   "fluss",   "vital",   "drift",   "balance", "licht",  "fokus"],
+        ["cw", "out", "medium", "fluss",   "balance", "vital",   "licht",   "fokus",  "drift"],
+        ["ccw","in",  "strong", "fluss",   "drift",   "balance", "fokus",   "licht",  "vital"],
+        ["ccw","out", "soft",   "fluss",   "vital",   "licht",   "balance", "drift",  "fokus"],
+        ["cw", "in",  "medium", "fluss",   "balance", "fokus",   "vital",   "drift",  "licht"],
+        ["cw", "out", "strong", "fluss",   "licht",   "balance", "drift",   "vital",  "fokus"],
+        ["ccw","in",  "soft",   "fluss",   "drift",   "fokus",   "balance", "vital",  "licht"],
+        ["ccw","out", "medium", "fluss",   "vital",   "balance", "licht",   "drift",  "fokus"],
+        ["cw", "in",  "strong", "fluss",   "balance", "vital",   "fokus",   "licht",  "drift"]
+    ]
+}

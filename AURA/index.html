@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>♟️ STAGE · SCHACHBRETT · TOOLATOR · MASTER · iki1uc</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --bg:#05070e; --fg:#c0d0d0;
+    --cyan:#6cf; --gold:#f0d080; --purple:#b388ff;
+    --green:#8cf0d0; --red:#ff6666; --orange:#ff8c00;
+    --line:rgba(120,220,150,0.08);
+    --panel:rgba(6,8,16,0.75);
+  }
+  html,body{min-height:100%;}
+  body{
+    background:#05070e;
+    background-image:
+      radial-gradient(ellipse at 50% 30%, #0c1a2c 0%, #05070e 60%, #020409 100%);
+    color:var(--fg);
+    font-family:'Consolas','Courier New',monospace;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  /* ─── 9×9 RESPO HINTERGRUND ─────────────────── */
+  #respoBg{
+    position:fixed; inset:0; z-index:-1;
+    opacity:0.05; pointer-events:none;
+    display:grid; grid-template-columns:repeat(9,1fr);
+    grid-template-rows:repeat(9,1fr); gap:2px;
+  }
+  #respoBg div{
+    background:rgba(120,220,150,0.03);
+    border-radius:2px;
+    transition:background .5s;
+  }
+
+  /* ─── MASTER LAYOUT ─────────────────────────── */
+  #master{
+    display:flex; flex-direction:column;
+    min-height:100vh;
+    padding:16px 20px 20px;
+    max-width:1500px; margin:0 auto;
+    gap:16px;
+  }
+
+  /* ─── HEADER / COMMANDER ───────────────────── */
+  #commander{
+    display:flex; flex-wrap:wrap;
+    justify-content:space-between; align-items:center;
+    padding:12px 20px;
+    background:var(--panel);
+    backdrop-filter:blur(10px);
+    border-radius:16px;
+    border:1px solid var(--line);
+  }
+  #commander .brand{
+    font-size:22px; font-weight:300; letter-spacing:3px;
+    background:linear-gradient(135deg,#7ee0a0,#d8f0c0,#b388ff);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    display:flex; align-items:center; gap:12px;
+  }
+  #commander .brand small{
+    font-size:11px; -webkit-text-fill-color:#4a5a6a;
+    letter-spacing:1px;
+  }
+  .commander-status{
+    display:flex; gap:18px; font-size:11px;
+    color:#6a8a7a; flex-wrap:wrap;
+  }
+  .commander-status .led{
+    display:inline-block; width:8px; height:8px;
+    border-radius:50%; margin-right:4px;
+  }
+  .led.green{ background:#8cf0d0; box-shadow:0 0 8px #8cf0d0; }
+  .led.gold{ background:#f0d080; box-shadow:0 0 8px #f0d080; }
+  .led.purple{ background:#b388ff; box-shadow:0 0 8px #b388ff; }
+  .led.off{ background:#2a3a3a; }
+  .led.pulse{ animation:pulse 1.4s infinite; }
+  @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+  /* ─── 8 RICHTUNGEN ─────────────────────────── */
+  #directions{
+    display:flex; flex-wrap:wrap; gap:6px;
+    padding:8px 16px;
+    background:rgba(0,0,0,0.25);
+    border-radius:12px;
+    border:1px solid rgba(120,220,150,0.04);
+    justify-content:center;
+  }
+  .dir-item{
+    padding:4px 14px; border-radius:20px;
+    font-size:11px; letter-spacing:1px;
+    color:#5a7a6a;
+    background:rgba(20,28,20,0.3);
+    border:1px solid rgba(120,220,150,0.04);
+    transition:0.2s; cursor:pointer;
+  }
+  .dir-item:hover{ color:#d0e8e0; }
+  .dir-item.active{
+    color:#f0d080;
+    border-color:rgba(240,208,128,0.2);
+    background:rgba(240,208,128,0.04);
+  }
+  .dir-item .sym{ color:#7ee0a0; margin-right:4px; }
+
+  /* ─── WORKSPACE: SCHACHBRETT + TOOLATOR ────── */
+  #workspace{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  @media (max-width:1000px){
+    #workspace{ grid-template-columns:1fr; }
+  }
+
+  .box{
+    background:var(--panel);
+    backdrop-filter:blur(10px);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:16px;
+  }
+  .box h2{
+    font-size:13px; font-weight:400; letter-spacing:3px;
+    color:var(--gold); margin-bottom:10px;
+    text-transform:uppercase;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .box h2 .badge{
+    font-size:10px; color:#5a7a8a; font-weight:400;
+    letter-spacing:1px;
+  }
+
+  /* ─── SCHACHBRETT ──────────────────────────── */
+  #chessWrap{
+    display:flex; justify-content:center; align-items:center;
+    padding:8px 0;
+  }
+  #chess{
+    display:grid;
+    grid-template-columns:repeat(9,1fr);
+    grid-template-rows:repeat(9,1fr);
+    gap:2px;
+    width:100%;
+    max-width:450px;
+    aspect-ratio:1;
+    background:#0a1018;
+    padding:6px;
+    border-radius:10px;
+    border:1px solid rgba(120,220,150,0.15);
+  }
+  .cell{
+    background:rgba(20,28,20,0.4);
+    border-radius:4px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:15px;
+    color:#4a6a5a;
+    cursor:pointer;
+    transition:all 0.2s cubic-bezier(.2,.9,.25,1);
+    user-select:none;
+    position:relative;
+  }
+  .cell:hover{
+    background:rgba(120,220,150,0.12);
+    transform:scale(1.05);
+    z-index:2;
+  }
+  .cell.light{ background:rgba(30,40,55,0.5); }
+  .cell.dark{ background:rgba(15,20,30,0.6); }
+  .cell.booked{
+    background:rgba(140,240,208,0.2);
+    color:#8cf0d0;
+    box-shadow:inset 0 0 12px rgba(140,240,208,0.3);
+  }
+  .cell.booked.special{
+    background:rgba(240,208,128,0.2);
+    color:#f0d080;
+    box-shadow:inset 0 0 12px rgba(240,208,128,0.4);
+  }
+  .cell.cluster{
+    outline:1px solid rgba(179,136,255,0.6);
+    outline-offset:1px;
+  }
+  .cell .v{
+    position:absolute;
+    bottom:1px; right:3px;
+    font-size:7px;
+    color:#3a5a4a;
+    font-family:'Consolas',monospace;
+  }
+  .cell.booked .v{ color:#4a9a7a; }
+
+  /* ─── TOOLATOR (Messgerät) ─────────────────── */
+  #toolator{
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .metric{
+    display:flex; justify-content:space-between;
+    align-items:center;
+    padding:6px 10px;
+    background:rgba(0,0,0,0.3);
+    border-radius:8px;
+    border-left:3px solid var(--green);
+    font-size:11px;
+  }
+  .metric.purple{ border-left-color:var(--purple); }
+  .metric.gold{ border-left-color:var(--gold); }
+  .metric.red{ border-left-color:var(--red); }
+  .metric.cyan{ border-left-color:var(--cyan); }
+  .metric .lbl{ color:#8aa8a0; }
+  .metric .val{
+    font-weight:bold; color:#d0e8e0; font-size:13px;
+  }
+  .metric .val.green{ color:#8cf0d0; }
+  .metric .val.purple{ color:#b388ff; }
+  .metric .val.gold{ color:#f0d080; }
+  .metric .val.red{ color:#ff6666; }
+  .metric .val.cyan{ color:#6cf; }
+
+  .bar{
+    width:100%; height:6px;
+    background:rgba(20,28,20,0.6);
+    border-radius:3px; overflow:hidden;
+    margin-top:3px;
+  }
+  .bar .fill{
+    height:100%;
+    background:linear-gradient(90deg,#7ee0a0,#b388ff);
+    border-radius:3px; transition:width .4s;
+  }
+  .bar .fill.gold{
+    background:linear-gradient(90deg,#f0d080,#ff8c00);
+  }
+  .bar .fill.cyan{
+    background:linear-gradient(90deg,#6cf,#b388ff);
+  }
+
+  .toolator-section{
+    margin-top:6px;
+    border-top:1px solid rgba(120,220,150,0.04);
+    padding-top:8px;
+  }
+  .toolator-section h3{
+    font-size:10px; color:var(--gold);
+    letter-spacing:2px; margin-bottom:6px;
+    text-transform:uppercase;
+  }
+
+  /* ─── MACHT PANEL ──────────────────────────── */
+  #macht{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:10px;
+  }
+  .macht-card{
+    background:rgba(0,0,0,0.3);
+    border:1px solid rgba(120,220,150,0.08);
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:10px;
+  }
+  .macht-card h4{
+    font-size:10px; color:var(--cyan);
+    letter-spacing:2px; margin-bottom:6px;
+    text-transform:uppercase;
+    display:flex; justify-content:space-between;
+  }
+  .macht-card h4 .dot{
+    display:inline-block; width:6px; height:6px;
+    border-radius:50%; background:#3a3a3a;
+  }
+  .macht-card h4 .dot.on{
+    background:#8cf0d0; box-shadow:0 0 6px #8cf0d0;
+  }
+  .macht-card h4 .dot.fail{
+    background:#ff6666; box-shadow:0 0 6px #ff6666;
+  }
+  .macht-card .row{
+    display:flex; justify-content:space-between;
+    padding:2px 0; font-size:10px;
+    border-bottom:1px solid rgba(255,255,255,0.02);
+  }
+  .macht-card .row .lbl{ color:#8aa8a0; }
+  .macht-card .row .val{ font-weight:bold; color:#d0e8e0; }
+  .macht-card .actions{
+    display:flex; gap:5px; margin-top:6px;
+  }
+  .macht-card button{
+    flex:1;
+    background:rgba(20,28,20,0.6);
+    border:1px solid rgba(120,220,150,0.2);
+    color:#d0e8e0; padding:4px 0;
+    border-radius:5px; font-size:9px;
+    font-family:inherit; cursor:pointer;
+    letter-spacing:1px;
+  }
+  .macht-card button:hover{
+    border-color:#7ee0a0;
+    background:rgba(120,220,150,0.1);
+  }
+
+  /* ─── MODULE LINKS ─────────────────────────── */
+  #moduleList{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:10px;
+  }
+  .modul-card{
+    background:rgba(10,14,22,0.7);
+    border:1px solid rgba(120,220,150,0.06);
+    border-radius:12px;
+    padding:12px 12px 10px;
+    cursor:pointer;
+    transition:all 0.3s;
+    text-decoration:none;
+    color:#c0d0d0;
+    position:relative;
+  }
+  .modul-card:hover{
+    transform:translateY(-3px);
+    border-color:rgba(120,220,150,0.25);
+    box-shadow:0 8px 20px rgba(0,0,0,0.5);
+    background:rgba(16,22,34,0.8);
+  }
+  .modul-card .icon{
+    font-size:20px; display:block; margin-bottom:4px;
+  }
+  .modul-card .name{
+    font-size:12px; font-weight:600;
+    color:#d0e8e0;
+  }
+  .modul-card .desc{
+    font-size:9px; color:#6a8a7a; margin-top:2px;
+  }
+
+  /* ─── LOG ──────────────────────────────────── */
+  #logBox{
+    background:rgba(0,0,0,0.5);
+    border-radius:12px;
+    border:1px solid var(--line);
+    padding:8px 12px;
+    font-size:9.5px; line-height:1.6;
+    color:#8ab0c0;
+    max-height:110px; overflow-y:auto;
+  }
+  #logBox .entry{padding:1px 0;border-bottom:1px solid rgba(255,255,255,0.02);}
+  #logBox .time{color:#3a4a5a;margin-right:6px;}
+  #logBox .tag{color:#6cf;margin-right:4px;}
+  #logBox .ok{color:#8cf0d0;}
+  #logBox .warn{color:#f0d080;}
+  #logBox .err{color:#ff6666;}
+  #logBox .gold{color:#f0d080;font-weight:bold;}
+
+  /* ─── FOOTER ───────────────────────────────── */
+  footer{
+    text-align:center;
+    font-size:9px; color:#3a4a4a;
+    padding:8px 16px;
+    border-top:1px solid rgba(120,220,150,0.03);
+  }
+  footer .gold{ color:#f0d080; }
+
+  /* ─── FL76 Monitor ─────────────────────────── */
+  #fl76mon{
+    position:fixed; bottom:14px; right:14px;
+    padding:6px 12px;
+    background:rgba(6,8,16,0.9);
+    border:1px solid rgba(140,240,208,0.3);
+    border-radius:6px;
+    font-size:10px; letter-spacing:1.5px;
+    color:#8cf0b0; z-index:12;
+    text-align:right; min-width:130px;
+  }
+  #fl76mon .num{font-size:16px;font-weight:bold;color:#8cf0b0;}
+  #fl76mon.outside{border-color:rgba(255,102,102,0.5);}
+  #fl76mon.outside .num{color:#ff6666;}
+  #fl76mon.edge{border-color:rgba(240,208,128,0.5);}
+  #fl76mon.edge .num{color:#f0d080;}
+
+  /* Responsive */
+  @media (max-width:700px){
+    #master{padding:10px;}
+    #commander .brand{font-size:16px;}
+    #grid, #moduleList{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
+    #chess{max-width:100%;}
+    .cell{font-size:12px;}
+    #fl76mon{bottom:8px;right:8px;font-size:9px;padding:4px 8px;min-width:100px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- 9×9 RESPO Hintergrund -->
+<div id="respoBg"></div>
+
+<div id="master">
+
+  <!-- COMMANDER HEADER -->
+  <header id="commander">
+    <div class="brand">
+      ♟️ STAGE · SCHACHBRETT · TOOLATOR
+      <small>MASTER · MAcht · algorithmierter Neustand</small>
+    </div>
+    <div class="commander-status">
+      <span><span class="led green"></span> NC‑LIVE</span>
+      <span><span class="led gold pulse"></span> TOOLATOR</span>
+      <span><span class="led purple"></span> MASTER_KERNEL</span>
+      <span>KlicK <b id="hdrKlick" style="color:#f0d080;">0</b></span>
+      <span>Service <b id="hdrService" style="color:#8cf0d0;">0%</b></span>
+      <span id="hdrClock" style="color:#4a5a6a;">⏱️ --:--</span>
+    </div>
+  </header>
+
+  <!-- 8 RICHTUNGEN -->
+  <div id="directions">
+    <span class="dir-item active" data-dir="S"><span class="sym">●</span> S · Sonne</span>
+    <span class="dir-item" data-dir="H"><span class="sym">○</span> H · Engine</span>
+    <span class="dir-item" data-dir="B"><span class="sym">◆</span> B · Matrix</span>
+    <span class="dir-item" data-dir="T"><span class="sym">△</span> T · Triangle</span>
+    <span class="dir-item" data-dir="O"><span class="sym">◉</span> O · Orbit</span>
+    <span class="dir-item" data-dir="D"><span class="sym">▣</span> D · DS9</span>
+    <span class="dir-item" data-dir="t"><span class="sym">⚙</span> t · Helper</span>
+    <span class="dir-item" data-dir="sys"><span class="sym">🧠</span> sys · System</span>
+  </div>
+
+  <!-- WORKSPACE: SCHACHBRETT + TOOLATOR -->
+  <div id="workspace">
+
+    <!-- SCHACHBRETT -->
+    <div class="box">
+      <h2>
+        ♟️ SCHACHBRETT · RESPO‑BUCHUNG
+        <span class="badge" id="chessBadge">0/81 gebucht</span>
+      </h2>
+      <div id="chessWrap">
+        <div id="chess"></div>
+      </div>
+      <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+        <button id="btnBookAll" style="flex:1;min-width:100px;background:rgba(20,28,20,0.6);border:1px solid rgba(120,220,150,0.25);color:#8cf0d0;padding:6px;border-radius:6px;font-family:inherit;font-size:10px;cursor:pointer;">✅ ALLE BUCHEN</button>
+        <button id="btnUnbookAll" style="flex:1;min-width:100px;background:rgba(30,20,20,0.6);border:1px solid rgba(255,102,102,0.25);color:#ff6666;padding:6px;border-radius:6px;font-family:inherit;font-size:10px;cursor:pointer;">⟲ ALLE FREI</button>
+        <button id="btnResetChess" style="flex:1;min-width:100px;background:rgba(20,20,30,0.6);border:1px solid rgba(179,136,255,0.25);color:#b388ff;padding:6px;border-radius:6px;font-family:inherit;font-size:10px;cursor:pointer;">🔄 NEUSTAND</button>
+      </div>
+    </div>
+
+    <!-- TOOLATOR -->
+    <div class="box">
+      <h2>
+        📊 TOOLATOR · RESPO‑SERVICE
+        <span class="badge" id="toolBadge">bereit</span>
+      </h2>
+      <div id="toolator">
+
+        <!-- MATHEMATISCH -->
+        <div class="toolator-section">
+          <h3>· mathematisch ·</h3>
+          <div class="metric">
+            <span class="lbl">Buchungen</span>
+            <span class="val green" id="t-booked">0 / 81</span>
+          </div>
+          <div class="bar"><div class="fill" id="t-booked-bar" style="width:0%"></div></div>
+
+          <div class="metric purple">
+            <span class="lbl">Service‑Summe</span>
+            <span class="val purple" id="t-service">0.00</span>
+          </div>
+
+          <div class="metric gold">
+            <span class="lbl">Respo‑Score</span>
+            <span class="val gold" id="t-respo">0.00</span>
+          </div>
+
+          <div class="metric cyan">
+            <span class="lbl">Clusters (zusammenhängend)</span>
+            <span class="val cyan" id="t-clusters">0</span>
+          </div>
+
+          <div class="metric">
+            <span class="lbl">Entropie (Chaos)</span>
+            <span class="val" id="t-entropy">0.00</span>
+          </div>
+        </div>
+
+        <!-- PHYSIKALISCH -->
+        <div class="toolator-section">
+          <h3>· physikalisch ·</h3>
+          <div class="metric gold">
+            <span class="lbl">Masse (Σ Buchung × Wert)</span>
+            <span class="val gold" id="t-mass">0.00 g</span>
+          </div>
+
+          <div class="metric purple">
+            <span class="lbl">Waage (links ↔ rechts)</span>
+            <span class="val purple" id="t-balance">0.00</span>
+          </div>
+          <div class="bar"><div class="fill gold" id="t-balance-bar" style="width:50%"></div></div>
+
+          <div class="metric red">
+            <span class="lbl">Kraft (Cluster‑Gravitation)</span>
+            <span class="val red" id="t-force">0.00</span>
+          </div>
+
+          <div class="metric cyan">
+            <span class="lbl">Energie (E ∝ Masse)</span>
+            <span class="val cyan" id="t-energy">0.00</span>
+          </div>
+        </div>
+
+        <!-- TOOLATOR BUTTONS -->
+        <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
+          <button id="btnMeasure" style="flex:1;min-width:100px;background:rgba(20,28,20,0.6);border:1px solid rgba(120,220,150,0.3);color:#8cf0d0;padding:6px;border-radius:6px;font-family:inherit;font-size:10px;cursor:pointer;">📏 MESSEN</button>
+          <button id="btnAutoMeasure" style="flex:1;min-width:100px;background:rgba(20,20,30,0.6);border:1px solid rgba(179,136,255,0.3);color:#b388ff;padding:6px;border-radius:6px;font-family:inherit;font-size:10px;cursor:pointer;">⏯ AUTO</button>
+          <button id="btnEvalRith" style="flex:1;min-width:100px;background:rgba(30,20,20,0.6);border:1px solid rgba(255,140,0,0.3);color:#ff8c00;padding:6px;border-radius:6px;font-family:inherit;font-size:10px;cursor:pointer;">🔬 RITH</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MACHT PANEL -->
+  <div class="box">
+    <h2>
+      ⚙️ MASTER · MACHT
+      <span class="badge" id="machtBadge">autostart läuft</span>
+    </h2>
+    <div id="macht">
+      <!-- Wird vom JS gefüllt -->
+    </div>
+    <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+      <button id="btnStartAll" style="flex:1;min-width:110px;background:rgba(20,30,20,0.6);border:1px solid rgba(120,220,150,0.3);color:#8cf0d0;padding:6px;border-radius:6px;font-family:inherit;font-size:10px;cursor:pointer;">▶ START ALL</button>
+      <button id="btnStopAll" style="flex:1;min-width:110px;background:rgba(30,20,20,0.6);border:1px solid rgba(255,102,102,0.3);color:#ff6666;padding:6px;border-radius:6px;font-family:inherit;font-size:10px;cursor:pointer;">⏸ STOP ALL</button>
+      <button id="btnMasterKernel" style="flex:1;min-width:110px;background:rgba(30,20,30,0.6);border:1px solid rgba(179,136,255,0.3);color:#b388ff;padding:6px;border-radius:6px;font-family:inherit;font-size:10px;cursor:pointer;">🧠 MASTER_KERNEL.start()</button>
+    </div>
+  </div>
+
+  <!-- MODULE LINKS -->
+  <div class="box">
+    <h2>
+      🧩 MODULE · EXPLORER
+      <span class="badge">klick auf Karte öffnet Ordner</span>
+    </h2>
+    <div id="moduleList">
+      <!-- Wird vom JS gefüllt -->
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div id="logBox">
+    <div class="entry"><span class="time">[init]</span><span class="tag">stage</span><span class="ok">STAGE · SCHACHBRETT · TOOLATOR geladen</span></div>
+  </div>
+
+  <footer>
+    <span class="gold">✦</span> STAGE · SCHACHBRETT · TOOLATOR · MASTER · iki1uc
+    <span class="gold">✦</span> Buchen · Messen · Verstehen · Neu formen
+  </footer>
+</div>
+
+<!-- FL76 Monitor -->
+<div id="fl76mon">
+  <div>FL76</div>
+  <div class="num" id="fl76num">76</div>
+  <div style="font-size:8px;color:#4a5a5a;">ms · Kaiser‑Fenster</div>
+</div>
+
+<script>
+"use strict";
+// ═══════════════════════════════════════════════════════════════════
+// STAGE · SCHACHBRETT · TOOLATOR · MASTER · iki1uc
+// Das Schachbrett als buchbares Respo-System.
+// Der Toolator misst mathematisch und physikalisch.
+// MASTER_KERNEL orchestriert mit Fallback.
+// ═══════════════════════════════════════════════════════════════════
+
+// ─── 1. KONSTANTEN ─────────────────────────────────────────────
+const N = 9;                       // 9×9 Schachbrett
+const PIECE_VALUES = {              // Figurenwerte
+  ' ': 1,   // leeres Feld = Basis-Service
+  '·': 1,
+  '♟': 1,   // Bauer
+  '♞': 3,   // Springer
+  '♝': 3,   // Läufer
+  '♜': 5,   // Turm
+  '♛': 9,   // Dame
+  '♚': 12,  // König
+  'Ω': 6,   // Omega (Spezial)
+  '◉': 8,   // Respo-Kern
+};
+
+// Symbolisches Ausgangsbrett (wie im ORT-Penthouse-Design)
+const BOARD_SEED = [
+  ['♜','♞','♝','♛','♚','♝','♞','♜','Ω'],
+  ['♟','♟','♟','♟','♟','♟','♟','♟','·'],
+  ['·','·','·','·','·','·','·','·','·'],
+  ['·','·','·','◉','·','◉','·','·','·'],
+  ['·','·','·','·','◉','·','·','·','·'],
+  ['·','·','·','◉','·','◉','·','·','·'],
+  ['·','·','·','·','·','·','·','·','·'],
+  ['♙','♙','♙','♙','♙','♙','♙','♙','·'],
+  ['♖','♘','♗','♕','♔','♗','♘','♖','Ω'],
+];
+
+// ─── 2. STATE ──────────────────────────────────────────────────
+const S = {
+  booked: Array(N*N).fill(false),
+  seed: BOARD_SEED,
+  autoMeasure: true,
+  measureTimer: null,
+  tick: 0,
+  klick: 0,
+  // Metriken
+  bookedCount: 0,
+  serviceSum: 0,
+  respo: 0,
+  clusters: 0,
+  entropy: 0,
+  mass: 0,
+  balance: 0,
+  force: 0,
+  energy: 0,
+  // FL76
+  flRaw: 76, flSmooth: 76,
+  fps: 0, frameCount: 0, lastFpsT: 0, lastFrameT: 0,
+  // Module
+  mods: {},
+  autoChain: [],
+};
+
+// ─── 3. MODULE-DEFINITION ─────────────────────────────────────
+const MODULES = [
+  { id:'kit',     name:'kit.js',     label:'KERNEL · KIT=3',      global:'KIT' },
+  { id:'groub',   name:'groub.js',   label:'GROUP · GROUB=9',     global:'GROUB' },
+  { id:'work',    name:'work.js',    label:'PIPELINE · WORK=81',  global:'WORK' },
+  { id:'zam',     name:'ZaM.js',     label:'GATE · OFFER · PACT', global:'ZaM' },
+  { id:'ui',      name:'ui.js',      label:'UI · PANELS',         global:'UI' },
+  { id:'economy', name:'economy.js', label:'WERTE · KlicK/ZacK',  global:'ECONOMY' },
+];
+
+// Ordner-Module (Links)
+const FOLDERS = [
+  { id:'BOERSE',   icon:'📈', name:'BOERSE',   desc:'Börsen-Daten · Stage',   path:'./BOERSE/index.html' },
+  { id:'DOM',      icon:'🏛', name:'DOM',      desc:'Dom-Struktur · NC',       path:'./DOM/index.html' },
+  { id:'EOS',      icon:'🌌', name:'EOS',      desc:'Ende-of-System · Orbit',  path:'./EOS/index.html' },
+  { id:'EVO',      icon:'🔮', name:'EVO',      desc:'Evolution · Axiom-Map',   path:'./EVO/index.html' },
+  { id:'MARKT',    icon:'🏪', name:'MARKT',    desc:'Markt-Platz · RESPO',     path:'./MARKT/index.html' },
+  { id:'respo',    icon:'🌀', name:'RESPO',    desc:'9×9-Mesh · Live',         path:'./respo/index.html' },
+  { id:'tool48',   icon:'🛠', name:'TOOL48',   desc:'48-Tools · Werkzeug',     path:'./tool48/index.html' },
+  { id:'funktion', icon:'⚙️', name:'FUNKTION', desc:'Funktions-Achse · VEC',   path:'./funktion/index.html' },
+  { id:'orbit',    icon:'👁', name:'ORBIT-VIEWER', desc:'8-Etagen-Orbit · 3D',  path:'./etage-8-orbit-viewer/index.html' },
+  { id:'b',        icon:'📐', name:'Breite (b)', desc:'Breiten-Achse · HDF',   path:'./b/index.html' },
+  { id:'h',        icon:'↗',  name:'Hoch (h)',   desc:'Hoch-Achse · Vektor',   path:'./h/index.html' },
+  { id:'t',        icon:'↕',  name:'Tiefe (t)',  desc:'Tiefen-Achse · NC',     path:'./t/index.html' },
+];
+
+// ─── 4. TOOLATOR: MATHEMATIK ──────────────────────────────────
+function pieceValue(ch){ return PIECE_VALUES[ch] || 1; }
+
+// Union-Find für Cluster-Erkennung
+function computeClusters(){
+  const parent = {};
+  const find = (x) => parent[x] === x ? x : (parent[x] = find(parent[x]));
+  const union = (a,b) => {
+    const ra = find(a), rb = find(b);
+    if (ra !== rb) parent[ra] = rb;
+  };
+  const idx = (r,c) => r*N + c;
+
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++) parent[idx(r,c)] = idx(r,c);
+
+  for(let r=0;r<N;r++){
+    for(let c=0;c<N;c++){
+      if (!S.booked[idx(r,c)]) continue;
+      // Nachbar rechts
+      if (c+1 < N && S.booked[idx(r,c+1)]) union(idx(r,c), idx(r,c+1));
+      // Nachbar unten
+      if (r+1 < N && S.booked[idx(r+1,c)]) union(idx(r,c), idx(r+1,c));
+    }
+  }
+
+  const groups = {};
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+    if (!S.booked[idx(r,c)]) continue;
+    const root = find(idx(r,c));
+    (groups[root] = groups[root] || []).push(idx(r,c));
+  }
+  return Object.values(groups);
+}
+
+// Entropie: -Σ p·log(p), p = gebucht/total pro Zeile
+function computeEntropy(){
+  let entropy = 0;
+  for(let r=0;r<N;r++){
+    let booked = 0;
+    for(let c=0;c<N;c++) if (S.booked[r*N+c]) booked++;
+    const p = booked / N;
+    if (p > 0 && p < 1) entropy -= p * Math.log2(p) + (1-p) * Math.log2(1-p);
+  }
+  return entropy / N; // normalisiert 0..1
+}
+
+// Waage: linke Hälfte vs rechte Hälfte
+function computeBalance(){
+  let left = 0, right = 0;
+  for(let r=0;r<N;r++){
+    for(let c=0;c<N;c++){
+      if (!S.booked[r*N+c]) continue;
+      const v = pieceValue(S.seed[r][c]);
+      if (c < N/2) left += v;
+      else right += v;
+    }
+  }
+  const total = left + right || 1;
+  return { left, right, ratio: right / total }; // 0 = links, 1 = rechts
+}
+
+// Kraft: Cluster-Gravitation (Summe der paarweisen Kräfte in Clustern)
+function computeForce(clusters){
+  let force = 0;
+  clusters.forEach(cl => {
+    if (cl.length < 2) return;
+    // Für jeden Cluster: alle Paare → Kraft ~ m1*m2/d² (d = Abstand)
+    for(let i=0;i<cl.length;i++){
+      for(let j=i+1;j<cl.length;j++){
+        const ra = Math.floor(cl[i]/N), ca = cl[i]%N;
+        const rb = Math.floor(cl[j]/N), cb = cl[j]%N;
+        const d2 = (ra-rb)**2 + (ca-cb)**2;
+        if (d2 === 0) continue;
+        const ma = pieceValue(S.seed[ra][ca]);
+        const mb = pieceValue(S.seed[rb][cb]);
+        force += (ma * mb) / d2;
+      }
+    }
+  });
+  return force * 0.001; // Skalierung
+}
+
+// ─── 5. TOOLATOR: BERECHNEN ───────────────────────────────────
+function measure(){
+  let booked = 0, mass = 0;
+  for(let i=0;i<N*N;i++){
+    if (!S.booked[i]) continue;
+    booked++;
+    const r = Math.floor(i/N), c = i % N;
+    mass += pieceValue(S.seed[r][c]);
+  }
+  const clusters = computeClusters();
+  const entropy = computeEntropy();
+  const balance = computeBalance();
+  const force = computeForce(clusters);
+
+  S.bookedCount = booked;
+  S.mass = mass;
+  S.serviceSum = mass;
+  S.respo = mass / (81 * 9);       // Normiert auf Maximum (81 Felder × 9)
+  S.clusters = clusters.length;
+  S.entropy = entropy;
+  S.balance = balance.ratio;
+  S.force = force;
+  S.energy = mass * 0.5;           // E ∝ m (metaphorisch)
+
+  renderToolator(clusters);
+  document.getElementById('chessBadge').textContent = `${booked}/81 gebucht`;
+  document.getElementById('hdrService').textContent = (S.respo * 100).toFixed(0) + '%';
+  document.getElementById('toolBadge').textContent = S.autoMeasure ? 'auto' : 'bereit';
+  document.getElementById('hdrKlick').textContent = S.klick;
+}
+
+// ─── 6. RENDER: TOOLATOR ──────────────────────────────────────
+function renderToolator(clusters){
+  document.getElementById('t-booked').textContent = `${S.bookedCount} / 81`;
+  document.getElementById('t-booked-bar').style.width = (S.bookedCount / 81 * 100) + '%';
+  document.getElementById('t-service').textContent = S.serviceSum.toFixed(2);
+  document.getElementById('t-respo').textContent = S.respo.toFixed(3);
+  document.getElementById('t-clusters').textContent = S.clusters;
+  document.getElementById('t-entropy').textContent = S.entropy.toFixed(3);
+  document.getElementById('t-mass').textContent = S.mass.toFixed(2) + ' g';
+  document.getElementById('t-balance').textContent = S.balance.toFixed(3);
+  document.getElementById('t-balance-bar').style.width = (S.balance * 100) + '%';
+  document.getElementById('t-force').textContent = S.force.toFixed(3);
+  document.getElementById('t-energy').textContent = S.energy.toFixed(2) + ' J';
+
+  // Cluster-Outline auf dem Brett
+  const clusterCells = new Set();
+  clusters.forEach(cl => {
+    if (cl.length >= 2) cl.forEach(i => clusterCells.add(i));
+  });
+  document.querySelectorAll('.cell').forEach(el => {
+    const i = parseInt(el.dataset.idx, 10);
+    el.classList.toggle('cluster', clusterCells.has(i));
+  });
+}
+
+// ─── 7. RENDER: SCHACHBRETT ──────────────────────────────────
+function buildChess(){
+  const chess = document.getElementById('chess');
+  chess.innerHTML = '';
+  for(let r=0;r<N;r++){
+    for(let c=0;c<N;c++){
+      const i = r*N + c;
+      const piece = S.seed[r][c];
+      const isLight = (r+c) % 2 === 0;
+      const cell = document.createElement('div');
+      cell.className = 'cell ' + (isLight ? 'light' : 'dark');
+      if (S.booked[i]) cell.classList.add('booked');
+      if (piece === 'Ω' || piece === '◉' || piece === '♚' || piece === '♛') cell.classList.add('special');
+      cell.dataset.idx = i;
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      cell.title = `${piece} · Wert ${pieceValue(piece)}`;
+      cell.innerHTML = `${piece === ' ' ? '·' : piece}<span class="v">${pieceValue(piece)}</span>`;
+      cell.addEventListener('click', () => toggleCell(i));
+      chess.appendChild(cell);
+    }
+  }
+}
+
+function toggleCell(i){
+  S.booked[i] = !S.booked[i];
+  S.klick++;
+  const cell = document.querySelector(`.cell[data-idx="${i}"]`);
+  if (cell){
+    cell.classList.toggle('booked', S.booked[i]);
+    // kleine Animation
+    cell.style.transform = 'scale(1.2)';
+    setTimeout(()=>{ cell.style.transform = ''; }, 150);
+  }
+  measure();
+}
+
+// ─── 8. SCHACHBRETT-BUTTONS ──────────────────────────────────
+document.getElementById('btnBookAll').addEventListener('click', () => {
+  S.booked.fill(true);
+  buildChess();
+  measure();
+  log('♟️ Alle Zellen gebucht', 'chess', 'gold');
+});
+document.getElementById('btnUnbookAll').addEventListener('click', () => {
+  S.booked.fill(false);
+  buildChess();
+  measure();
+  log('⟲ Alle Zellen freigegeben', 'chess', 'warn');
+});
+document.getElementById('btnResetChess').addEventListener('click', () => {
+  // NEUSTAND: Würfel aus ursprünglichem Seed neu buchen (die Ω, ◉, ♚, ♛, ♜, ♞, ♝)
+  S.booked.fill(false);
+  for(let r=0;r<N;r++){
+    for(let c=0;c<N;c++){
+      const p = S.seed[r][c];
+      if (p === 'Ω' || p === '◉' || p === '♚' || p === '♛') {
+        S.booked[r*N+c] = true;
+      }
+    }
+  }
+  buildChess();
+  measure();
+  log('🔄 NEUSTAND · Kernfiguren gebucht', 'chess', 'ok');
+});
+
+// ─── 9. TOOLATOR BUTTONS ─────────────────────────────────────
+document.getElementById('btnMeasure').addEventListener('click', () => {
+  measure();
+  log(`📏 Messung · Service=${S.serviceSum.toFixed(2)} · Respo=${S.respo.toFixed(3)} · Cluster=${S.clusters}`, 'toolator', 'ok');
+});
+
+document.getElementById('btnAutoMeasure').addEventListener('click', (e) => {
+  S.autoMeasure = !S.autoMeasure;
+  e.currentTarget.textContent = S.autoMeasure ? '⏯ AUTO' : '▶ AUTO';
+  e.currentTarget.style.color = S.autoMeasure ? '#b388ff' : '#8cf0d0';
+  if (S.autoMeasure) startAutoMeasure(); else stopAutoMeasure();
+  log(`Toolator AUTO ${S.autoMeasure ? 'an' : 'aus'}`, 'toolator', 'warn');
+});
+
+document.getElementById('btnEvalRith').addEventListener('click', () => {
+  // RITH-Eval auf Basis der aktuellen Buchungen
+  const res = evaluateRith();
+  log(`🔬 RITH · level=${res.rith} · score=${res.score} · emotion=${res.emotion}`, 'rith', 'ok');
+  document.getElementById('toolBadge').textContent = `rith ${res.rith}`;
+});
+
+// Einfache RITH-Eval (aus rith.engine.js nachempfunden)
+function evaluateRith(){
+  const total = 81;
+  const booked = S.bookedCount;
+  const clusters = S.clusters;
+  const entropy = S.entropy;
+  const score = Math.round((booked/total) * 60 + (clusters / 12) * 40);
+  let rith = 0;
+  if (booked > 0) rith++;
+  if (clusters > 0) rith++;
+  if (S.respo > 0.3) rith++;
+  if (S.respo > 0.6 && entropy < 0.7) rith++;
+  const emotion = score >= 70 ? 'FREUDE' : score >= 40 ? 'NEUTRAL' : 'MÜDE';
+  return { rith, score, emotion };
+}
+
+function startAutoMeasure(){
+  if (S.measureTimer) return;
+  S.measureTimer = setInterval(() => {
+    if (!S.autoMeasure) return;
+    // Nur die Cluster/Dynamik neu berechnen (nicht die Buchung)
+    const clusters = computeClusters();
+    const entropy = computeEntropy();
+    const balance = computeBalance();
+    const force = computeForce(clusters);
+    S.clusters = clusters.length;
+    S.entropy = entropy;
+    S.balance = balance.ratio;
+    S.force = force;
+    renderToolator(clusters);
+  }, 800);
+}
+function stopAutoMeasure(){
+  if (S.measureTimer) { clearInterval(S.measureTimer); S.measureTimer = null; }
+}
+
+// ─── 10. MODULE (MASTER · MACHT) ─────────────────────────────
+function makeFallback(id){
+  return {
+    __fallback:true, id,
+    init(){ return true; },
+    run(){ return { ok:false, reason:'fallback' }; },
+    stop(){ return true; },
+    state(){ return { id, present:false }; },
+  };
+}
+
+function detectModules(){
+  MODULES.forEach(m => {
+    const obj = window[m.global];
+    const present = !!(obj && (typeof obj === 'object' || typeof obj === 'function'));
+    S.mods[m.id] = {
+      present,
+      api: present ? obj : makeFallback(m.id),
+    };
+  });
+}
+
+function renderMacht(){
+  const box = document.getElementById('macht');
+  box.innerHTML = '';
+  MODULES.forEach(m => {
+    const mod = S.mods[m.id];
+    const present = mod?.present;
+    const div = document.createElement('div');
+    div.className = 'macht-card';
+    div.innerHTML = `
+      <h4><span>${m.label}</span><span class="dot ${present ? 'on' : 'fail'}"></span></h4>
+      <div class="row"><span class="lbl">Modul</span><span class="val">${m.name}</span></div>
+      <div class="row"><span class="lbl">Status</span><span class="val" style="color:${present ? '#8cf0d0' : '#ff6666'};">${present ? 'ok' : 'fallback'}</span></div>
+      <div class="actions">
+        <button data-mod="${m.id}" data-act="run">RUN</button>
+        <button data-mod="${m.id}" data-act="stop">STOP</button>
+      </div>
+    `;
+    box.appendChild(div);
+  });
+  box.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.mod, act = btn.dataset.act;
+      const api = S.mods[id]?.api;
+      if (act === 'run'){
+        try { if (api?.run) api.run(); else if (api?.start) api.start(); log(`▶ ${id} · RUN`, 'macht', 'ok'); }
+        catch(e){ log(`✗ ${id} · ${e.message}`, 'macht', 'err'); }
+      } else {
+        try { if (api?.stop) api.stop(); log(`⏸ ${id} · STOP`, 'macht', 'warn'); }
+        catch(e){ log(`✗ ${id} · ${e.message}`, 'macht', 'err'); }
+      }
+    });
+  });
+}
+
+// Auto-Start-Kette: KIT → GROUB → WORK → ZAM → UI → ECONOMY
+const CHAIN = ['kit', 'groub', 'work', 'zam', 'ui', 'economy'];
+
+function autoStart(){
+  log('▶ AUTO-START · Kette beginnt', 'macht', 'gold');
+  CHAIN.forEach((id, idx) => {
+    setTimeout(() => {
+      const m = S.mods[id];
+      const mod = MODULES.find(x => x.id === id);
+      try {
+        if (m?.api?.init) m.api.init();
+        else if (m?.api?.start) m.api.start();
+        S.autoChain.push({ id, ok:true });
+        log(`  ↳ ${mod.name} → ${m.present ? 'geladen' : 'fallback'}`, 'auto', m.present ? 'ok' : 'warn');
+        renderMacht();
+      } catch(e){
+        S.autoChain.push({ id, ok:false });
+        log(`  ✗ ${mod.name} · ${e.message}`, 'auto', 'err');
+      }
+    }, idx * 180);
+  });
+  setTimeout(() => log('✅ AUTO-START abgeschlossen', 'macht', 'ok'), CHAIN.length * 180 + 200);
+}
+
+// ─── 11. MODULE-LINKS ────────────────────────────────────────
+function renderFolders(){
+  const box = document.getElementById('moduleList');
+  box.innerHTML = '';
+  FOLDERS.forEach(f => {
+    const a = document.createElement('a');
+    a.className = 'modul-card';
+    a.href = f.path;
+    a.innerHTML = `
+      <span class="icon">${f.icon}</span>
+      <div class="name">${f.name}</div>
+      <div class="desc">${f.desc}</div>
+    `;
+    box.appendChild(a);
+  });
+}
+
+// ─── 12. RENDER: 8 RICHTUNGEN ────────────────────────────────
+document.querySelectorAll('.dir-item').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.dir-item').forEach(d => d.classList.remove('active'));
+    el.classList.add('active');
+    log(`🧭 Richtung: ${el.dataset.dir} aktiviert (Spinnwebe)`, 'dir', 'gold');
+    // Kleine Wirkung auf das Brett: Buchung in dieser Richtung togglen
+    applyDirection(el.dataset.dir);
+  });
+});
+
+function applyDirection(dir){
+  // Jede Richtung ist eine Achse im Schachbrett
+  // Bucht einen Streifen in dieser Richtung
+  const toBook = [];
+  switch(dir){
+    case 'S': // Sonne → alles buchen
+      for(let i=0;i<N*N;i++) S.booked[i] = true;
+      break;
+    case 'H': // Engine → mittlere Zeile
+      for(let c=0;c<N;c++) toBook.push(4*N + c);
+      break;
+    case 'B': // Matrix → mittlere Spalte
+      for(let r=0;r<N;r++) toBook.push(r*N + 4);
+      break;
+    case 'T': // Triangle → Diagonale
+      for(let i=0;i<N;i++) toBook.push(i*N + i);
+      break;
+    case 'O': // Orbit → Kreis um Zentrum
+      for(let r=2;r<7;r++) for(let c=2;c<7;c++) toBook.push(r*N + c);
+      break;
+    case 'D': // DS9 → 4 Ecken
+      toBook.push(0, N-1, (N-1)*N, N*N-1);
+      break;
+    case 't': // Helper → zufällige 10 Felder
+      for(let i=0;i<10;i++) toBook.push(Math.floor(Math.random()*N*N));
+      break;
+    case 'sys': // System → Kernfiguren (Seed)
+      for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+        const p = S.seed[r][c];
+        if (p === 'Ω' || p === '◉' || p === '♚' || p === '♛') toBook.push(r*N + c);
+      }
+      break;
+  }
+  if (dir === 'S'){
+    // S = alle
+    buildChess();
+  } else {
+    toBook.forEach(i => { S.booked[i] = true; });
+    buildChess();
+  }
+  measure();
+}
+
+// ─── 13. MASTER_KERNEL ────────────────────────────────────────
+const MASTER_KERNEL = {
+  init:  () => S.mods.kit?.api?.init?.(),
+  build: () => ({ matrix: S.booked.slice() }),
+  send:  (m) => { /* Broadcast der Matrix */ broadcast('mk:matrix', m); },
+  pipe:  () => { /* Pipeline */ },
+  orbit: () => S.mods.zam?.api?.orbit?.(),
+  ui:    () => S.mods.ui?.api?.init?.(),
+  eco:   () => { /* Eco connect */ },
+  work:  () => S.mods.work?.api?.start?.(),
+  groub: () => S.mods.groub?.api?.start?.(),
+  start(){
+    this.init();
+    const matrix = this.build();
+    this.send(matrix);
+    this.work();
+    this.groub();
+    this.ui();
+    this.eco();
+    this.orbit();
+    log('🧠 MASTER_KERNEL.start() · volle Kette ausgeführt', 'kernel', 'gold');
+    return matrix;
+  }
+};
+window.MASTER_KERNEL = MASTER_KERNEL;
+
+document.getElementById('btnMasterKernel').addEventListener('click', () => MASTER_KERNEL.start());
+document.getElementById('btnStartAll').addEventListener('click', () => {
+  CHAIN.forEach(id => { try { S.mods[id]?.api?.run?.() || S.mods[id]?.api?.start?.(); } catch(_){} });
+  log('▶ START ALL', 'macht', 'gold');
+});
+document.getElementById('btnStopAll').addEventListener('click', () => {
+  CHAIN.forEach(id => { try { S.mods[id]?.api?.stop?.(); } catch(_){} });
+  log('⏸ STOP ALL', 'macht', 'warn');
+});
+
+// ─── 14. BROADCAST ───────────────────────────────────────────
+let BC = null;
+try { BC = new BroadcastChannel('iki1uc-orbit'); } catch(_){}
+function broadcast(type, payload){
+  if (BC) { try { BC.postMessage({ type, from:'STAGE-TOOLATOR', payload, ts:Date.now() }); } catch(_){} }
+}
+
+// ─── 15. 9×9 RESPO Hintergrund ───────────────────────────────
+function initRespoBg(){
+  const bg = document.getElementById('respoBg');
+  for(let i=0;i<81;i++){
+    const c = document.createElement('div');
+    c.dataset.idx = i;
+    bg.appendChild(c);
+  }
+}
+function animateRespoBg(){
+  const now = performance.now() * 0.001;
+  document.querySelectorAll('#respoBg div').forEach((cell,i) => {
+    const val = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(i * 0.2 + now * 0.3 + Math.sin(i * 0.05 + now * 0.2)));
+    const alpha = 0.02 + val * 0.08;
+    cell.style.background = `rgba(120, 220, 150, ${alpha})`;
+  });
+  requestAnimationFrame(animateRespoBg);
+}
+
+// ─── 16. FL76 Monitor ────────────────────────────────────────
+function tickFl76(now){
+  S.frameCount++;
+  if (now - S.lastFpsT > 1000){
+    S.fps = S.frameCount;
+    S.frameCount = 0;
+    S.lastFpsT = now;
+  }
+  if (S.lastFrameT > 0){
+    S.flRaw = now - S.lastFrameT;
+    S.flSmooth = S.flSmooth * 0.88 + S.flRaw * 0.12;
+  }
+  S.lastFrameT = now;
+  const fl = Math.round(S.flSmooth);
+  const mon = document.getElementById('fl76mon');
+  document.getElementById('fl76num').textContent = fl;
+  if (fl >= 60 && fl <= 90) mon.className = '';
+  else if (fl < 40 || fl > 120) mon.className = 'outside';
+  else mon.className = 'edge';
+  requestAnimationFrame(tickFl76);
+}
+
+// ─── 17. LOG ──────────────────────────────────────────────────
+function log(msg, tag = 'stage', type = ''){
+  const box = document.getElementById('logBox');
+  const entry = document.createElement('div');
+  entry.className = 'entry';
+  const t = new Date().toLocaleTimeString('de-DE');
+  entry.innerHTML = `<span class="time">[${t}]</span><span class="tag">${tag}</span><span class="${type}">${msg}</span>`;
+  box.appendChild(entry);
+  box.scrollTop = box.scrollHeight;
+  while (box.children.length > 80) box.removeChild(box.firstChild);
+}
+
+// ─── 18. CLOCK ────────────────────────────────────────────────
+function clock(){
+  document.getElementById('hdrClock').textContent = '⏱️ ' + new Date().toLocaleTimeString('de-DE');
+}
+setInterval(clock, 1000); clock();
+
+// ─── 19. KEYBOARD ─────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  // 1-8 für Richtungen
+  const dirMap = { '1':'S', '2':'H', '3':'B', '4':'T', '5':'O', '6':'D', '7':'t', '8':'sys' };
+  if (e.key in dirMap) {
+    const el = document.querySelector(`.dir-item[data-dir="${dirMap[e.key]}"]`);
+    if (el) el.click();
+  }
+  // M = Messen
+  if (e.key === 'm' || e.key === 'M') document.getElementById('btnMeasure').click();
+  // Leertaste = KlicK (eine zufällige Zelle togglen)
+  if (e.key === ' '){
+    e.preventDefault();
+    const i = Math.floor(Math.random() * N * N);
+    toggleCell(i);
+  }
+});
+
+// ─── 20. INIT ─────────────────────────────────────────────────
+function init(){
+  // Respo-Hintergrund
+  initRespoBg();
+  animateRespoBg();
+
+  // Schachbrett: Kernfiguren sind initial gebucht
+  for(let r=0;r<N;r++){
+    for(let c=0;c<N;c++){
+      const p = S.seed[r][c];
+      if (p === 'Ω' || p === '◉' || p === '♚' || p === '♛') {
+        S.booked[r*N+c] = true;
+      }
+    }
+  }
+  buildChess();
+  measure();
+  startAutoMeasure();
+
+  // Module erkennen + rendern
+  detectModules();
+  renderMacht();
+  renderFolders();
+
+  // Auto-Start
+  autoStart();
+
+  // FL76
+  S.lastFpsT = performance.now();
+  requestAnimationFrame(tickFl76);
+
+  log('♟️ STAGE · SCHACHBRETT · TOOLATOR bereit', 'init', 'gold');
+  log('Buchen · Messen · Verstehen', 'init', 'ok');
+  log('MASTER_KERNEL · window.MASTER_KERNEL.start()', 'init', 'gold');
+}
+
+if (document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>

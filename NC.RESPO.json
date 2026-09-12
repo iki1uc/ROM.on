@@ -1,0 +1,40 @@
+{
+    "nc-respo": "9x9-response-core",
+    "version": "1.0.0",
+
+    "root": {
+        "type": "response-tree",
+        "description": "NC Response Baum – Antworten für 9x9 neuronale Matrix",
+        "connects": [
+            "NC.room.js",
+            "RESPO.room.js",
+            "HOLO.room.js",
+            "SYS.generator.js",
+            "NC.9y9.json"
+        ]
+    },
+
+    "responses": {
+        "mana":    "Impulse stabilisiert",
+        "aura":    "Resonanz erkannt",
+        "kraft":   "Schub erzeugt",
+        "licht":   "Feld erhellt",
+        "fokus":   "Achse ausgerichtet",
+        "fluss":   "Drift aktiv",
+        "vital":   "Lebensenergie erhöht",
+        "balance": "System ausgeglichen",
+        "drift":   "Bewegung eingeleitet"
+    },
+
+    "matrix": [
+        ["mana", "aura", "kraft", "licht", "fokus", "fluss", "vital", "balance", "drift"],
+        ["aura", "kraft", "licht", "fokus", "fluss", "vital", "balance", "drift", "mana"],
+        ["kraft", "licht", "fokus", "fluss", "vital", "balance", "drift", "mana", "aura"],
+        ["licht", "fokus", "fluss", "vital", "balance", "drift", "mana", "aura", "kraft"],
+        ["fokus", "fluss", "vital", "balance", "drift", "mana", "aura", "kraft", "licht"],
+        ["fluss", "vital", "balance", "drift", "mana", "aura", "kraft", "licht", "fokus"],
+        ["vital", "balance", "drift", "mana", "aura", "kraft", "licht", "fokus", "fluss"],
+        ["balance", "drift", "mana", "aura", "kraft", "licht", "fokus", "fluss", "vital"],
+        ["drift", "mana", "aura", "kraft", "licht", "fokus", "fluss", "vital", "balance"]
+    ]
+}

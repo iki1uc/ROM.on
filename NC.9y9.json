@@ -1,0 +1,39 @@
+{
+    "nc": "9x9-root-core",
+    "version": "1.0.0",
+    "axis3": ["mana", "aura", "kraft"],
+    "axis6": ["licht", "fokus", "fluss", "mana", "aura", "kraft"],
+    "axis9": [
+        "mana",
+        "aura",
+        "kraft",
+        "licht",
+        "fokus",
+        "fluss",
+        "vital",
+        "balance",
+        "drift"
+    ],
+    "matrix": [
+        [ "mana", "aura", "kraft", "licht", "fokus", "fluss", "vital", "balance", "drift" ],
+        [ "aura", "kraft", "licht", "fokus", "fluss", "vital", "balance", "drift", "mana" ],
+        [ "kraft", "licht", "fokus", "fluss", "vital", "balance", "drift", "mana", "aura" ],
+        [ "licht", "fokus", "fluss", "vital", "balance", "drift", "mana", "aura", "kraft" ],
+        [ "fokus", "fluss", "vital", "balance", "drift", "mana", "aura", "kraft", "licht" ],
+        [ "fluss", "vital", "balance", "drift", "mana", "aura", "kraft", "licht", "fokus" ],
+        [ "vital", "balance", "drift", "mana", "aura", "kraft", "licht", "fokus", "fluss" ],
+        [ "balance", "drift", "mana", "aura", "kraft", "licht", "fokus", "fluss", "vital" ],
+        [ "drift", "mana", "aura", "kraft", "licht", "fokus", "fluss", "vital", "balance" ]
+    ],
+    "root": {
+        "type": "tree",
+        "description": "NC Root Baum – 9x9 neuronale Matrix",
+        "connects": [
+            "RAWATOR_81",
+            "NC.room.js",
+            "HOLO.room.js",
+            "SYS.generator.js",
+            "AXIOM.AXIS369"
+        ]
+    }
+}
